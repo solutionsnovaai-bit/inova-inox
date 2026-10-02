@@ -1,0 +1,279 @@
+@layer components {
+  /* ---------- logotipo em camadas ---------- */
+  .logo-camadas {
+    position: relative;
+    width: 100%;
+  }
+  .logo-camada {
+    position: absolute;
+    user-select: none;
+    will-change: transform, opacity, filter;
+  }
+  .logo-camada img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+  }
+  /* Metal incandescente: cobre a peça com a cor da solda e some conforme esfria. */
+  .logo-brasa {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, #fff 0%, #ffe9c2 30%, #ffab45 68%, #ff6f0f 100%);
+    mask-size: 100% 100%;
+    -webkit-mask-size: 100% 100%;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    pointer-events: none;
+  }
+
+  /* ---------- tela de carregamento ---------- */
+  .loader {
+    --p: 0;
+    position: fixed;
+    inset: 0;
+    z-index: 900;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+  }
+
+  /* Duas chapas de aço escovado que formam o fundo e se abrem na saída. */
+  .loader-chapa {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 50.5%;
+    background-color: #000;
+    background-image: var(--tex-escovado);
+    background-size: 640px 320px;
+    transition: transform 0.85s var(--ease-corte) 0.4s;
+  }
+  /* No clarão do impacto, o escovado das chapas acende por um instante. */
+  .loader[data-impacto] .loader-chapa {
+    animation: loader-chapa-acende 0.9s ease-out both;
+  }
+  @keyframes loader-chapa-acende {
+    0% { filter: brightness(1); }
+    12% { filter: brightness(4.5); }
+    100% { filter: brightness(1.6); }
+  }
+  .loader-chapa--cima { top: 0; }
+  .loader-chapa--baixo { bottom: 0; }
+
+  /* Luz azul atrás do logo. Cresce junto com o progresso. */
+  .loader-aura {
+    position: absolute;
+    left: 50%;
+    top: 46%;
+    width: min(150vw, 1100px);
+    aspect-ratio: 1.7;
+    transform: translate(-50%, -50%) scale(calc(0.55 + var(--p) * 0.5));
+    background:
+      radial-gradient(ellipse 50% 50% at 50% 50%, rgb(4 113 229 / 0.55), transparent 70%),
+      radial-gradient(ellipse 26% 22% at 50% 50%, rgb(79 163 255 / 0.4), transparent 70%);
+    opacity: calc(0.12 + var(--p) * 0.7);
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+  }
+
+  .loader-solda {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    transition: opacity 0.5s ease 0.25s;
+  }
+
+  .loader-centro {
+    position: relative;
+    width: min(86vw, 720px);
+    display: grid;
+    gap: clamp(3rem, 10vh, 5.5rem);
+    justify-items: center;
+    transition: opacity 0.42s ease, transform 0.6s var(--ease-corte), filter 0.42s ease;
+  }
+  .loader-logo {
+    position: relative;
+    width: 100%;
+  }
+
+  /* Reflexo no piso, que aparece quando o logo assenta. */
+  .loader-reflexo {
+    position: absolute;
+    left: 0;
+    top: 103%;
+    width: 100%;
+    transform: scaleY(-1);
+    filter: blur(3px);
+    opacity: 0;
+    mask-image: linear-gradient(0deg, #000, transparent 36%);
+    -webkit-mask-image: linear-gradient(0deg, #000, transparent 36%);
+    transition: opacity 0.9s ease;
+    pointer-events: none;
+  }
+
+  /* Brilho que só existe dentro do contorno do logo. */
+  .loader-brilho {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    mask-size: 100% 100%;
+    -webkit-mask-size: 100% 100%;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    background: linear-gradient(105deg, transparent 40%, #fff 50%, transparent 60%) no-repeat;
+    background-size: 260% 100%;
+    background-position: 160% 0;
+    mix-blend-mode: screen;
+    opacity: 0;
+  }
+
+  /* Anel de luz que abre no impacto. */
+  .loader-anel {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 46%;
+    aspect-ratio: 1;
+    margin: -23% 0 0 -23%;
+    border-radius: 50%;
+    border: 2px solid var(--color-azul-claro);
+    box-shadow: 0 0 40px 6px rgb(4 113 229 / 0.7), inset 0 0 40px 6px rgb(4 113 229 / 0.5);
+    opacity: 0;
+    transform: scale(0.2);
+    pointer-events: none;
+  }
+
+  .loader-clarao {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 70% 60% at 50% 46%, rgb(214 234 255 / 0.9), rgb(4 113 229 / 0.35) 55%, transparent 80%);
+    opacity: 0;
+    pointer-events: none;
+    mix-blend-mode: screen;
+  }
+
+  /* Fio de arco elétrico na emenda das duas chapas. */
+  .loader-corte {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 2px;
+    margin-top: -1px;
+    background: linear-gradient(90deg, transparent, var(--color-azul-claro) 20%, #fff 50%, var(--color-azul-claro) 80%, transparent);
+    box-shadow: 0 0 18px 3px rgb(79 163 255 / 0.85), 0 0 70px 14px rgb(4 113 229 / 0.55);
+    transform: scaleX(0);
+    opacity: 0;
+  }
+
+  /* ---------- impacto ---------- */
+  .loader[data-impacto] .loader-logo {
+    animation: loader-assenta 0.5s var(--ease-metal) both;
+  }
+  .loader[data-impacto] .loader-anel {
+    animation: loader-anel 0.95s var(--ease-metal) both;
+  }
+  .loader[data-impacto] .loader-clarao {
+    animation: loader-clarao 0.7s ease-out both;
+  }
+  .loader[data-impacto] .loader-brilho {
+    opacity: 1;
+    animation: loader-brilho 0.85s var(--ease-metal) 0.05s both;
+  }
+  .loader[data-impacto] .loader-reflexo {
+    opacity: 0.16;
+  }
+
+  @keyframes loader-assenta {
+    0% { transform: scale(1.06); }
+    22% { transform: scale(0.985) translate(-3px, 2px); }
+    40% { transform: scale(1.004) translate(3px, -1px); }
+    58% { transform: scale(0.998) translate(-1px, 1px); }
+    100% { transform: none; }
+  }
+  @keyframes loader-anel {
+    0% { opacity: 0.95; transform: scale(0.2); }
+    100% { opacity: 0; transform: scale(3.4); }
+  }
+  @keyframes loader-clarao {
+    0% { opacity: 0.75; }
+    100% { opacity: 0; }
+  }
+  @keyframes loader-brilho {
+    from { background-position: 160% 0; }
+    to { background-position: -60% 0; }
+  }
+
+  /* ---------- régua de progresso ---------- */
+  .regua {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: min(86%, 26rem);
+    color: var(--color-aco);
+  }
+  .regua-escala {
+    position: relative;
+    flex: 1;
+    height: 14px;
+    /* Traços de milímetro, com um traço maior a cada dez. */
+    background:
+      repeating-linear-gradient(90deg, var(--color-aco-medio) 0 1px, transparent 1px 10%) 0 100% / 100% 100% no-repeat,
+      repeating-linear-gradient(90deg, var(--color-aco-fundo) 0 1px, transparent 1px 2%) 0 100% / 100% 45% no-repeat;
+    border-bottom: 1px solid var(--color-aco-fundo);
+  }
+  .regua-preenchida {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 2px;
+    background: var(--color-azul-claro);
+    transform-origin: left;
+    box-shadow: 0 0 10px var(--color-azul);
+  }
+  .regua-cursor {
+    position: absolute;
+    top: -6px;
+    bottom: -5px;
+    width: 9px;
+    margin-left: -4px;
+    background: linear-gradient(180deg, #f1f3f5, #aeb5bc);
+    clip-path: polygon(0 0, 100% 0, 100% 72%, 50% 100%, 0 72%);
+  }
+  .regua-valor {
+    min-width: 3.2ch;
+    font-size: 1.3rem;
+    color: #fff;
+  }
+
+  /* ---------- saída ---------- */
+  .loader[data-saindo] {
+    pointer-events: none;
+  }
+  /* O logo avança na direção de quem olha e some na luz. */
+  .loader[data-saindo] .loader-centro {
+    opacity: 0;
+    transform: scale(1.55);
+    filter: brightness(2.6) blur(5px);
+  }
+  .loader[data-saindo] .loader-aura,
+  .loader[data-saindo] .loader-solda {
+    opacity: 0;
+  }
+  .loader[data-saindo] .loader-corte {
+    animation: loader-corte 1.2s var(--ease-metal) both;
+  }
+  .loader[data-saindo] .loader-chapa--cima { transform: translateY(-101%); }
+  .loader[data-saindo] .loader-chapa--baixo { transform: translateY(101%); }
+
+  @keyframes loader-corte {
+    0% { transform: scaleX(0); opacity: 1; }
+    32% { transform: scaleX(1); opacity: 1; }
+    58% { transform: scaleX(1) scaleY(4); opacity: 1; }
+    100% { transform: scaleX(1) scaleY(1); opacity: 0; }
+  }
+}

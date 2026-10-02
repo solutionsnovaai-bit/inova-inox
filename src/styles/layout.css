@@ -1,0 +1,679 @@
+@layer components {
+  .nav {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 500;
+    height: var(--altura-nav);
+    transform: translateY(-110%);
+    transition: transform 0.9s var(--ease-metal), background 0.4s, backdrop-filter 0.4s;
+  }
+  .nav[data-visivel] {
+    transform: none;
+  }
+  .nav::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 1px;
+    background: var(--color-linha);
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+  .nav[data-rolou] {
+    background: rgb(0 0 0 / 0.78);
+    backdrop-filter: blur(14px) saturate(1.4);
+    -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  }
+  .nav[data-rolou]::after {
+    opacity: 1;
+  }
+
+  /* A barra acompanha o hero: de borda a borda, sem limite de largura. */
+  .nav-linha {
+    max-width: none;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+  }
+  .nav-marca {
+    display: block;
+    flex: none;
+  }
+  .marca {
+    display: block;
+    width: auto;
+  }
+  .nav-marca .marca {
+    height: 2.4rem;
+  }
+
+  .nav-links {
+    display: none;
+    gap: clamp(1.25rem, 2.4vw, 2.5rem);
+  }
+  .nav-link {
+    position: relative;
+    padding-block: 0.6rem;
+    font-stretch: 108%;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    color: var(--color-aco);
+    transition: color 0.25s;
+  }
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0.2rem;
+    height: 2px;
+    background: var(--color-azul-claro);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.45s var(--ease-metal);
+  }
+  .nav-link:hover {
+    color: #fff;
+  }
+  .nav-link:hover::after,
+  .nav-link:focus-visible::after {
+    transform: scaleX(1);
+  }
+
+  .nav-acoes {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .nav-menu {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    color: #fff;
+    cursor: pointer;
+  }
+  .nav-menu svg {
+    width: 1.6rem;
+    height: 1.6rem;
+  }
+
+  @media (min-width: 64rem) {
+    .nav-links {
+      display: flex;
+    }
+    .nav-menu {
+      display: none;
+    }
+  }
+
+  /* ---------- menu do celular ---------- */
+  .menu {
+    position: fixed;
+    inset: 0;
+    z-index: 800;
+    display: flex;
+    flex-direction: column;
+    padding: 0 var(--margem) max(1.5rem, env(safe-area-inset-bottom));
+    background-color: #000;
+    background-image: var(--tex-escovado),
+      radial-gradient(ellipse 90% 60% at 100% 100%, rgb(4 113 229 / 0.3), transparent 70%);
+    background-size: 640px 320px, 100% 100%;
+    overflow-y: auto;
+  }
+  .menu-topo {
+    height: var(--altura-nav);
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .menu-topo .marca {
+    height: 2.4rem;
+  }
+  .menu-links {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.35rem;
+    padding-block: 2rem;
+  }
+  .menu-link {
+    padding-block: 0.55rem;
+    font-size: clamp(1.9rem, 9vw, 3rem);
+    color: #fff;
+  }
+  .menu-base {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  /* ---------- progresso de leitura ---------- */
+  .progresso {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 600;
+    height: 2px;
+    background: linear-gradient(90deg, var(--color-azul), var(--color-azul-claro));
+    transform-origin: left;
+  }
+}
+
+@layer components {
+  .hero {
+    --px: 0;
+    --py: 0;
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    min-height: 100svh;
+    overflow: hidden;
+    background: #000;
+  }
+
+  /* ---------- fundo ---------- */
+  .hero-fundo {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+  }
+
+  /*
+   * Celular e telas em pé: a foto 9:16 ocupa a largura toda, presa ao topo.
+   * Nada é cortado dos lados, então o logotipo aparece inteiro.
+   */
+  .hero-quadro {
+    position: absolute;
+    inset: 0 3.5% auto;
+    transform-origin: 50% 30%;
+    /* As bordas da foto se desfazem no preto, sem linha de corte. */
+    mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+  }
+  .hero-foto {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .hero-veu {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 66vw, rgb(0 0 0 / 0.55) 90vw, rgb(0 0 0 / 0.86) 140vw, #000 175vw);
+  }
+
+  /* Fundo desenhado, usado só quando não há foto. */
+  .hero-luz {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 38% at 50% 27%, rgb(4 113 229 / 0.42), transparent 70%),
+      radial-gradient(ellipse 40% 16% at 50% 27%, rgb(79 163 255 / 0.3), transparent 70%);
+    transform: translate3d(calc(var(--px) * -26px), calc(var(--py) * -18px), 0);
+    transition: transform 0.6s var(--ease-metal);
+  }
+  .hero-riscos {
+    position: absolute;
+    inset: 0;
+    background-image: var(--tex-escovado);
+    background-size: 640px 320px;
+    opacity: 0.8;
+    mask-image: radial-gradient(ellipse 90% 60% at 50% 30%, #000, transparent 85%);
+    -webkit-mask-image: radial-gradient(ellipse 90% 60% at 50% 30%, #000, transparent 85%);
+  }
+  .hero-piso {
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 46%;
+    background: linear-gradient(180deg, transparent, rgb(0 0 0 / 0.85) 55%, #000);
+  }
+
+  /* ---------- faíscas ---------- */
+  .hero-faiscas {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+  }
+  .hero-faiscas canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .hero-arco {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    margin: -6px 0 0 -6px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow:
+      0 0 14px 5px #fff,
+      0 0 44px 16px var(--color-azul-claro),
+      0 0 150px 64px rgb(4 113 229 / 0.5);
+    opacity: 0;
+  }
+
+  /*
+   * A foto vai de borda a borda, então o texto e os atalhos do hero também
+   * usam a largura toda (sem o limite de 92rem): assim o texto nunca chega
+   * perto do logotipo, mesmo em monitor muito largo.
+   */
+  .hero--foto .conteudo {
+    max-width: none;
+  }
+
+  /* ---------- grade ---------- */
+  .hero-grade {
+    position: relative;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding-top: calc(var(--altura-nav) + clamp(0.5rem, 2.5vh, 2rem));
+    padding-bottom: clamp(1.75rem, 4vh, 3rem);
+  }
+  /* Com foto, o texto começa logo abaixo do logotipo, que termina a 87% da largura. */
+  .hero--foto .hero-grade {
+    padding-top: calc(84vw + 0.25rem);
+    padding-bottom: clamp(2.25rem, 6vh, 3.5rem);
+  }
+  /* No celular o hero termina onde o conteúdo termina, e a faixa azul já aparece. */
+  .hero--foto {
+    min-height: 0;
+  }
+
+  .hero-logo {
+    width: min(100%, 27rem);
+    margin-inline: auto;
+    perspective: 1100px;
+  }
+  .hero-logo-eixo {
+    position: relative;
+    transform: rotateY(calc(var(--px) * 13deg)) rotateX(calc(var(--py) * -9deg));
+    transform-style: preserve-3d;
+    transition: transform 0.7s var(--ease-metal);
+    filter: drop-shadow(0 24px 40px rgb(0 0 0 / 0.7));
+  }
+  .hero-reflexo {
+    position: absolute;
+    left: 0;
+    top: 104%;
+    width: 100%;
+    transform: scaleY(-1);
+    opacity: 0.2;
+    filter: blur(2px);
+    mask-image: linear-gradient(0deg, #000, transparent 62%);
+    -webkit-mask-image: linear-gradient(0deg, #000, transparent 62%);
+    pointer-events: none;
+  }
+
+  .hero-texto {
+    margin-top: auto;
+    padding-top: clamp(2.5rem, 7vh, 5rem);
+  }
+  .hero--foto .hero-texto {
+    margin-top: 0;
+    padding-top: 0;
+  }
+  .hero-apoio {
+    margin-top: clamp(0.9rem, 2.2vh, 1.6rem);
+    color: var(--color-aco);
+    text-shadow: 0 1px 14px rgb(0 0 0 / 0.8);
+  }
+  .hero-acoes {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: clamp(1.3rem, 3vh, 2.1rem);
+  }
+
+  /* ---------- atalhos de serviço ---------- */
+  .hero-servicos {
+    display: none;
+    border-top: 1px solid var(--color-linha);
+    background: linear-gradient(180deg, rgb(10 13 17 / 0.5), rgb(0 0 0 / 0.78));
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  .hero-servicos-linha {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .hero-servico {
+    position: relative;
+    display: grid;
+    gap: 0.1rem;
+    padding: 1.05rem 1.5rem 1.15rem 0;
+    color: var(--color-aco-medio);
+    transition: color 0.3s;
+  }
+  .hero-servico + .hero-servico {
+    padding-left: 1.5rem;
+    border-left: 1px solid var(--color-linha);
+  }
+  .hero-servico .subtitulo {
+    color: #fff;
+  }
+  .hero-servico::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -1px;
+    height: 2px;
+    background: var(--color-azul-claro);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.5s var(--ease-metal);
+  }
+  .hero-servico:hover,
+  .hero-servico:focus-visible {
+    color: var(--color-aco);
+  }
+  .hero-servico:hover::before,
+  .hero-servico:focus-visible::before {
+    transform: scaleX(1);
+  }
+
+  @media (min-width: 30rem) {
+    .hero-acoes {
+      display: flex;
+      flex-wrap: wrap;
+    }
+  }
+
+  @media (min-width: 48rem) {
+    .hero-servicos {
+      display: block;
+    }
+    .hero-logo {
+      width: min(70%, 34rem);
+    }
+  }
+
+  /*
+   * Tela larga deitada: foto 16:9 sempre na largura inteira, texto à esquerda.
+   * A foto nunca é cortada dos lados; quando ela é mais alta que a tela, sobe
+   * só o bastante para o logotipo ficar centrado entre a barra do topo e os
+   * atalhos de serviço.
+   */
+  @media (min-width: 64rem) and (orientation: landscape) {
+    .hero--foto {
+      --foto-altura: 56.28vw;
+      min-height: min(100svh, calc(var(--foto-altura) + 5.25rem));
+    }
+    .hero-quadro {
+      inset: auto;
+      left: 0;
+      width: 100%;
+      mask-image: none;
+      -webkit-mask-image: none;
+      height: var(--foto-altura);
+      top: min(0px, max(calc(100% - var(--foto-altura)), calc(50% - 0.5rem - var(--foto-altura) * 0.515)));
+      transform-origin: 70% 50%;
+    }
+    .hero-foto {
+      height: 100%;
+      object-fit: cover;
+      transform: scale(1.03) translate3d(calc(var(--px) * -12px), calc(var(--py) * -8px), 0);
+      transition: transform 0.9s var(--ease-metal);
+    }
+    .hero-veu {
+      background:
+        linear-gradient(90deg, rgb(0 0 0 / 0.72) 0%, rgb(0 0 0 / 0.4) 26%, transparent 46%),
+        linear-gradient(0deg, #000 0, rgb(0 0 0 / 0.55) 4.5rem, transparent 11rem);
+    }
+
+    .hero-grade {
+      display: grid;
+      grid-template-columns: minmax(0, 1.02fr) minmax(0, 1fr);
+      align-items: center;
+      gap: clamp(2rem, 4vw, 5rem);
+    }
+    .hero--foto .hero-grade {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      padding-top: var(--altura-nav);
+      padding-bottom: 0;
+    }
+    .hero-texto {
+      grid-column: 1;
+      grid-row: 1;
+      margin-top: 0;
+      padding-top: 0;
+    }
+    /* O logotipo começa a 40% da largura da foto: o texto fica antes disso. */
+    .hero--foto .hero-texto {
+      max-width: 34vw;
+    }
+    .hero--foto .hero-apoio {
+      font-size: clamp(0.95rem, 1.12vw, 1.3rem);
+    }
+    .hero--foto .hero-acoes {
+      display: grid;
+      justify-items: start;
+    }
+    .hero--foto .hero-acoes .botao {
+      min-width: min(100%, 21rem);
+    }
+
+    .hero-logo {
+      grid-column: 2;
+      grid-row: 1;
+      width: 100%;
+      max-width: 46rem;
+      margin-inline: auto 0;
+    }
+    .hero-luz {
+      background:
+        radial-gradient(ellipse 46% 52% at 74% 46%, rgb(4 113 229 / 0.42), transparent 70%),
+        radial-gradient(ellipse 22% 20% at 74% 46%, rgb(79 163 255 / 0.3), transparent 70%);
+    }
+    .hero-riscos {
+      mask-image: radial-gradient(ellipse 60% 80% at 74% 46%, #000, transparent 85%);
+      -webkit-mask-image: radial-gradient(ellipse 60% 80% at 74% 46%, #000, transparent 85%);
+    }
+    .hero-piso {
+      height: 30%;
+    }
+  }
+}
+
+@layer components {
+  .rodape {
+    position: relative;
+    overflow: hidden;
+    padding-top: clamp(3.5rem, 7vw, 6rem);
+    /* Espaço para a barra de compra do celular não cobrir o fim do rodapé. */
+    padding-bottom: 5.5rem;
+    background: #000;
+    color: var(--color-aco-medio);
+  }
+  @media (min-width: 48rem) {
+    .rodape {
+      padding-bottom: 2rem;
+    }
+  }
+
+  .rodape-grade {
+    display: grid;
+    gap: 2.5rem;
+  }
+  .rodape-marca .marca {
+    height: clamp(3.25rem, 6vw, 4.5rem);
+  }
+  .rodape-frase {
+    margin-top: 1rem;
+    max-width: 22em;
+  }
+  .rodape-coluna {
+    display: grid;
+    gap: 0.15rem;
+    align-content: start;
+    justify-items: start;
+  }
+  .rodape-titulo {
+    margin-bottom: 0.6rem;
+    color: #fff;
+  }
+  .rodape-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 2.5rem;
+    color: var(--color-aco);
+    transition: color 0.25s;
+  }
+  .rodape-link:hover {
+    color: var(--color-azul-claro);
+  }
+  .rodape-link svg {
+    width: 0.9rem;
+    height: 0.9rem;
+  }
+
+  /* Nome gigante vazado, cortado pela borda de baixo. */
+  .rodape-gigante {
+    margin-top: clamp(2.5rem, 6vw, 5rem);
+    padding-inline: var(--margem);
+    font-size: clamp(2.4rem, 11.1vw, 13.5rem);
+    line-height: 0.82;
+    white-space: nowrap;
+    text-align: center;
+    color: transparent;
+    -webkit-text-stroke: 1px rgb(200 205 211 / 0.3);
+    background: linear-gradient(180deg, rgb(4 113 229 / 0.4), transparent 85%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    user-select: none;
+  }
+
+  .rodape-base {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 2rem;
+    margin-top: clamp(1.5rem, 3vw, 2.5rem);
+    padding-top: 1.25rem;
+    padding-right: 4.5rem;
+    border-top: 1px solid var(--color-linha);
+  }
+
+  @media (min-width: 56rem) {
+    .rodape-grade {
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1.3fr);
+      gap: 4rem;
+    }
+  }
+}
+
+@layer components {
+  /*
+   * Balão do WhatsApp. A posição de descanso fica bem acima da borda
+   * (88px ou mais), e o hook de inércia nunca deixa o balão chegar
+   * a menos de 14px do fim da tela.
+   */
+  .balao {
+    --lado: 3.75rem;
+    --piso: 14px;
+    position: fixed;
+    right: clamp(14px, 2.4vw, 32px);
+    bottom: clamp(88px, 11vh, 120px);
+    z-index: 450;
+    width: var(--lado);
+    height: var(--lado);
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate3d(0, 26px, 0);
+    transition: opacity 0.6s var(--ease-metal);
+    will-change: transform;
+  }
+  .balao[data-visivel='sim'] {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .balao-miolo {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--color-zap);
+    color: #fff;
+    border: 2.5px solid #fff;
+    box-shadow: 0 16px 40px rgb(0 0 0 / 0.55), 0 0 0 4px rgb(4 113 229 / 0.35);
+    transition: transform 0.4s var(--ease-metal), background 0.3s;
+  }
+  .balao-miolo svg {
+    width: 1.9rem;
+    height: 1.9rem;
+  }
+  .balao:hover .balao-miolo,
+  .balao:focus-visible .balao-miolo {
+    transform: scale(1.08);
+    background: #1fbe5b;
+  }
+  .balao:focus-visible {
+    outline: none;
+  }
+  .balao:focus-visible .balao-miolo {
+    box-shadow: 0 0 0 4px #fff, 0 0 0 7px var(--color-azul);
+  }
+
+  /* No celular o piso sobe: o balão para antes de tocar a barra de compra. */
+  @media (max-width: 47.99rem) {
+    .balao {
+      --lado: 3.5rem;
+      --piso: 86px;
+      bottom: 106px;
+    }
+  }
+
+  /* Anel que pulsa de tempos em tempos para chamar o olho, sem insistir. */
+  .balao-anel {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 2px solid var(--color-zap);
+    animation: balao-pulso 3.6s ease-out infinite;
+  }
+  @keyframes balao-pulso {
+    0%, 55% { transform: scale(1); opacity: 0; }
+    60% { transform: scale(1); opacity: 0.7; }
+    100% { transform: scale(1.75); opacity: 0; }
+  }
+
+  /* ---------- barra de compra do celular ---------- */
+  .barra-compra {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 440;
+    padding: 0.6rem var(--margem) max(0.6rem, env(safe-area-inset-bottom));
+    background: rgb(0 0 0 / 0.86);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-top: 1px solid var(--color-linha);
+    transform: translateY(110%);
+    transition: transform 0.6s var(--ease-metal);
+  }
+  .barra-compra[data-visivel] {
+    transform: none;
+  }
+  .barra-compra .botao {
+    min-height: 3.1rem;
+  }
+  @media (min-width: 48rem) {
+    .barra-compra {
+      display: none;
+    }
+  }
+}

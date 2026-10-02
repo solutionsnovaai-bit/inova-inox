@@ -1,0 +1,13 @@
+{
+  "name": "Inova Inox",
+  "short_name": "Inova Inox",
+  "description": "Peças em aço inox, usinagem, polimento e solda.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "lang": "pt-BR",
+  "icons": [
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

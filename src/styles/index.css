@@ -1,0 +1,454 @@
+@import 'tailwindcss';
+@import './loader.css';
+@import './layout.css';
+@import './secoes.css';
+
+/*
+ * Tokens do Tailwind v4. Cada cor vira classe utilitária
+ * (bg-azul, text-aco, border-linha...) e variável CSS (--color-azul).
+ */
+@theme {
+  --color-preto: #000000;
+  --color-chapa: #0a0d11;
+  --color-chapa-alta: #131820;
+  --color-aco: #c8cdd3;
+  --color-aco-medio: #8d96a0;
+  --color-aco-fundo: #5b636c;
+  --color-linha: rgb(200 205 211 / 0.16);
+  --color-azul: #0471e5;
+  --color-azul-claro: #4fa3ff;
+  --color-faisca: #ff8a1f;
+  --color-ml: #ffe600;
+  --color-zap: #25d366;
+  --color-escovado: #e4e7ea;
+  --color-tinta: #0a0d11;
+  --color-tinta-suave: #474e57;
+
+  --font-sans: 'Archivo Variable', 'Archivo', 'Arial Narrow', system-ui, sans-serif;
+
+  --ease-metal: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-corte: cubic-bezier(0.76, 0, 0.24, 1);
+
+  --breakpoint-xs: 26rem;
+}
+
+:root {
+  --margem: clamp(1.25rem, 4.2vw, 4.5rem);
+  --largura: 92rem;
+  --altura-nav: 4.5rem;
+  --chanfro: 18px;
+
+  /* Riscos finos na horizontal, como chapa escovada. */
+  --tex-escovado: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='320'%3E%3Cfilter id='e' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' stitchTiles='stitch' baseFrequency='0.004 1.1' numOctaves='3' seed='11'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.2 -0.065'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23e)'/%3E%3C/svg%3E");
+  --tex-escovado-escuro: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='320'%3E%3Cfilter id='e' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' stitchTiles='stitch' baseFrequency='0.004 1.1' numOctaves='3' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.26 -0.08'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23e)'/%3E%3C/svg%3E");
+  /* Superfície bruta: grão irregular, sem direção. */
+  --tex-bruto: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cfilter id='b' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' stitchTiles='stitch' baseFrequency='0.7' numOctaves='3' seed='2'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.6 -0.2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23b)'/%3E%3C/svg%3E");
+}
+
+@layer base {
+  html {
+    background: var(--color-preto);
+    color: var(--color-aco);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    scroll-padding-top: var(--altura-nav);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  html:not(.lenis) {
+    scroll-behavior: smooth;
+  }
+
+  /* Regras exigidas pela rolagem suave do desktop. */
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+  .lenis.lenis-stopped {
+    overflow: hidden;
+  }
+
+  body {
+    min-height: 100svh;
+    overflow-x: clip;
+    font-size: 1.0625rem;
+    line-height: 1.6;
+  }
+
+  ::selection {
+    background: var(--color-azul);
+    color: #fff;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-azul-claro);
+    outline-offset: 3px;
+  }
+
+  img {
+    -webkit-user-drag: none;
+  }
+
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@layer components {
+  .conteudo {
+    width: 100%;
+    max-width: var(--largura);
+    margin-inline: auto;
+    padding-inline: var(--margem);
+  }
+
+  .pular-link {
+    position: fixed;
+    left: 1rem;
+    top: 1rem;
+    z-index: 1000;
+    padding: 0.75rem 1rem;
+    background: var(--color-azul);
+    color: #fff;
+    font-weight: 700;
+    transform: translateY(-200%);
+  }
+  .pular-link:focus {
+    transform: none;
+  }
+
+  .so-leitor {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+}
+
+/*
+ * Uma família só, a Archivo (servida junto com o site, sem depender de terceiros),
+ * em dois registros:
+ *  - títulos: larga, pesada e itálica, como o lettering do logotipo;
+ *  - texto: largura normal, peso regular.
+ */
+@layer components {
+  .titulo {
+    font-stretch: 125%;
+    font-weight: 800;
+    font-style: italic;
+    text-transform: uppercase;
+    letter-spacing: -0.022em;
+    line-height: 0.94;
+    text-wrap: balance;
+  }
+
+  /* Celular: duas linhas que cabem na largura. Desktop: coluna de quatro linhas. */
+  .titulo-hero {
+    font-size: clamp(1.5rem, 6.85vw, 4rem);
+  }
+  @media (min-width: 64rem) and (orientation: landscape) {
+    .titulo-hero {
+      font-size: clamp(2.6rem, 5vw, 7rem);
+    }
+  }
+
+  .titulo-secao {
+    font-size: clamp(1.9rem, 5.2vw, 4.4rem);
+  }
+
+  .titulo-medio {
+    font-size: clamp(1.5rem, 3vw, 2.5rem);
+  }
+
+  .subtitulo {
+    font-stretch: 112%;
+    font-weight: 700;
+    font-size: clamp(1.15rem, 1.5vw, 1.4rem);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+  }
+
+  .texto-apoio {
+    font-size: clamp(1.05rem, 1.25vw, 1.25rem);
+    line-height: 1.55;
+    max-width: 34em;
+    text-wrap: pretty;
+  }
+
+  .texto-menor {
+    font-size: 0.9375rem;
+    line-height: 1.5;
+  }
+
+  /* Rótulo de ficha técnica: nome do processo, unidade, legenda de cota. */
+  .rotulo {
+    font-stretch: 112%;
+    font-weight: 600;
+    font-size: 0.8125rem;
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+  }
+
+  .numero {
+    font-stretch: 125%;
+    font-weight: 800;
+    font-style: italic;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+
+  /* Texto vazado, só com o contorno. */
+  .vazado {
+    color: transparent;
+    -webkit-text-stroke: 1px currentColor;
+  }
+
+  /* Máscara para o título subir de trás de uma linha. */
+  .linha-mascara {
+    display: block;
+    overflow: hidden;
+    padding-block: 0.08em 0.12em;
+    margin-block: -0.08em -0.12em;
+    padding-inline-end: 0.12em;
+  }
+  .linha-mascara > span {
+    display: block;
+    will-change: transform;
+  }
+}
+
+@layer components {
+  /* Corte reto de 45° em dois cantos opostos, como chanfro de peça usinada. */
+  .chanfro {
+    clip-path: polygon(
+      0 0,
+      calc(100% - var(--chanfro)) 0,
+      100% var(--chanfro),
+      100% 100%,
+      var(--chanfro) 100%,
+      0 calc(100% - var(--chanfro))
+    );
+  }
+
+  /* Chapa: cartão chanfrado com fio de borda que acompanha o corte. */
+  .chapa {
+    position: relative;
+    padding: 1px;
+    background: var(--chapa-borda, var(--color-linha));
+    clip-path: polygon(
+      0 0,
+      calc(100% - var(--chanfro)) 0,
+      100% var(--chanfro),
+      100% 100%,
+      var(--chanfro) 100%,
+      0 calc(100% - var(--chanfro))
+    );
+  }
+  .chapa-miolo {
+    position: relative;
+    height: 100%;
+    background: var(--chapa-fundo, var(--color-chapa));
+    clip-path: polygon(
+      0 0,
+      calc(100% - var(--chanfro) + 0.4px) 0,
+      100% calc(var(--chanfro) - 0.4px),
+      100% 100%,
+      calc(var(--chanfro) - 0.4px) 100%,
+      0 calc(100% - var(--chanfro) + 0.4px)
+    );
+  }
+
+  .escovado-escuro {
+    background-color: var(--color-chapa);
+    background-image: var(--tex-escovado),
+      linear-gradient(180deg, rgb(255 255 255 / 0.035), transparent 40%);
+    background-size: 640px 320px, 100% 100%;
+  }
+
+  /* Seção clara: chapa de inox escovado com faixas de reflexo. */
+  .escovado-claro {
+    color: var(--color-tinta);
+    background-color: var(--color-escovado);
+    background-image: var(--tex-escovado-escuro),
+      linear-gradient(
+        102deg,
+        #d9dde1 0%,
+        #f3f5f6 22%,
+        #dde1e5 41%,
+        #eceef0 58%,
+        #d3d8dc 79%,
+        #e8ebed 100%
+      );
+    background-size: 640px 320px, 100% 100%;
+  }
+
+  /* Fio de luz azul que separa duas seções escuras. */
+  .fio-azul {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--color-azul) 30%, var(--color-azul-claro) 50%, var(--color-azul) 70%, transparent);
+    opacity: 0.6;
+  }
+}
+
+@layer components {
+  .botao {
+    --chanfro: 11px;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.7rem;
+    min-height: 3.5rem;
+    padding: 0.9rem 1.5rem;
+    font-stretch: 112%;
+    font-weight: 700;
+    font-size: 1rem;
+    line-height: 1.1;
+    text-align: left;
+    isolation: isolate;
+    overflow: hidden;
+    cursor: pointer;
+    clip-path: polygon(
+      0 0,
+      calc(100% - var(--chanfro)) 0,
+      100% var(--chanfro),
+      100% 100%,
+      var(--chanfro) 100%,
+      0 calc(100% - var(--chanfro))
+    );
+    transform: translate3d(var(--ima-x, 0px), var(--ima-y, 0px), 0);
+    transition: transform 0.45s var(--ease-metal), filter 0.3s;
+  }
+
+  /* Brilho que atravessa o botão quando o ponteiro entra. */
+  .botao::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    z-index: -1;
+    background: linear-gradient(105deg, transparent 35%, rgb(255 255 255 / 0.55) 50%, transparent 65%);
+    transform: translateX(-120%);
+    transition: transform 0.9s var(--ease-metal);
+  }
+  .botao:hover::after,
+  .botao:focus-visible::after {
+    transform: translateX(120%);
+  }
+  .botao:active {
+    filter: brightness(0.92);
+  }
+  /* O recorte chanfrado esconde contorno externo, então o foco fica por dentro. */
+  .botao:focus-visible {
+    outline: 3px solid var(--color-azul);
+    outline-offset: -6px;
+  }
+  .botao--linha:focus-visible {
+    outline-color: var(--color-azul-claro);
+  }
+
+  .botao svg {
+    flex: none;
+    width: 1.3rem;
+    height: 1.3rem;
+  }
+
+  .botao--ml {
+    background: var(--color-ml);
+    color: var(--color-tinta);
+  }
+  .botao--zap {
+    background: var(--color-zap);
+    color: #03170b;
+  }
+  .botao--aco {
+    background: linear-gradient(180deg, #f1f3f5, #b9c0c7 55%, #dfe3e7);
+    color: var(--color-tinta);
+  }
+  .botao--tinta {
+    background: var(--color-tinta);
+    color: #fff;
+  }
+
+  /* Contorno: o fundo é a linha e o ::before cobre o miolo. */
+  .botao--linha {
+    background: var(--color-aco-medio);
+    color: #fff;
+  }
+  .botao--linha::before {
+    content: '';
+    position: absolute;
+    inset: 1px;
+    z-index: -2;
+    background: var(--color-preto);
+    clip-path: polygon(
+      0 0,
+      calc(100% - var(--chanfro) + 0.5px) 0,
+      100% calc(var(--chanfro) - 0.5px),
+      100% 100%,
+      calc(var(--chanfro) - 0.5px) 100%,
+      0 calc(100% - var(--chanfro) + 0.5px)
+    );
+    transition: background 0.3s;
+  }
+  .botao--linha::after {
+    background: linear-gradient(105deg, transparent 35%, rgb(79 163 255 / 0.4) 50%, transparent 65%);
+  }
+  .botao--linha:hover {
+    background: var(--color-azul-claro);
+  }
+
+  .botao--compacto {
+    min-height: 2.75rem;
+    padding: 0.55rem 1rem;
+    font-size: 0.875rem;
+    gap: 0.5rem;
+    --chanfro: 9px;
+  }
+  .botao--compacto svg {
+    width: 1.05rem;
+    height: 1.05rem;
+  }
+
+  .botao--largo {
+    width: 100%;
+  }
+
+  /* Link de texto com fio que cresce a partir da esquerda. */
+  .link-fio {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-stretch: 112%;
+    font-weight: 700;
+    padding-block: 0.35rem;
+    min-height: 2.75rem;
+  }
+  .link-fio::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0.55rem;
+    height: 2px;
+    background: currentColor;
+    transform-origin: left;
+    transform: scaleX(0.28);
+    transition: transform 0.5s var(--ease-metal);
+  }
+  .link-fio:hover::after,
+  .link-fio:focus-visible::after {
+    transform: scaleX(1);
+  }
+  .link-fio svg {
+    width: 1rem;
+    height: 1rem;
+  }
+}
