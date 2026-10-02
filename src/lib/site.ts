@@ -19,7 +19,7 @@ export const site = {
    * Link da loja no Mercado Livre. Defina VITE_ML_URL na Vercel
    * (ou troque o endereço abaixo) pelo link da página do vendedor.
    */
-  mercadoLivre: limpar(import.meta.env.VITE_ML_URL) || 'https://lista.mercadolivre.com.br/inova-inox',
+  mercadoLivre: 'https://wa.me/5511988895645?text=Ol%C3%A1!%20Vim%20pelo%20site%20da%20Inova%20Inox%20e%20quero%20comprar%20uma%20pe%C3%A7a.',
 
   url: limpar(import.meta.env.VITE_SITE_URL),
 } as const
