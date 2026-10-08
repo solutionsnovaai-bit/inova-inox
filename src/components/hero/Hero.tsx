@@ -10,9 +10,8 @@ import {
 } from '../../hooks/basicos'
 import { logo } from '../../lib/logo'
 import { LogoCamadas } from '../ui/LogoCamadas'
-import { servicos } from '../../data/conteudo'
 import { mensagens } from '../../lib/site'
-import { BotaoMercadoLivre, BotaoWhatsApp } from '../ui/Botoes'
+import { BotaoLigar, BotaoWhatsApp } from '../ui/Botoes'
 import { Titulo } from '../ui/Titulo'
 import { Faiscas } from './Faiscas'
 
@@ -94,40 +93,14 @@ export function HeroLogo({ pronto }: PropsHeroLogo) {
   )
 }
 
-type PropsHeroServicos = { pronto: boolean }
-
-/** Os três serviços na base do hero, como atalhos para a seção de serviços. */
-export function HeroServicos({ pronto }: PropsHeroServicos) {
-  const reduzido = useMovimentoReduzido()
-
-  return (
-    <motion.nav
-      className="hero-servicos"
-      aria-label="Serviços"
-      initial={reduzido ? false : { opacity: 0 }}
-      animate={pronto ? { opacity: 1 } : undefined}
-      transition={{ duration: 1, delay: 0.9, ease: EASE }}
-    >
-      <div className="conteudo hero-servicos-linha">
-        {servicos.map((servico) => (
-          <a key={servico.id} href={`#servico-${servico.id}`} className="hero-servico">
-            <span className="subtitulo">{servico.nome}</span>
-            <span className="texto-menor">{servico.chamada}</span>
-          </a>
-        ))}
-      </div>
-    </motion.nav>
-  )
-}
-
 type PropsHero = {
   /** Vira verdadeiro quando a tela de carregamento começa a abrir. */
   pronto: boolean
 }
 
 /** No desktop o título desce em coluna ao lado do logo; no celular, cabe em duas linhas. */
-const TITULO_LARGO = ['Inox', 'direto', 'de quem', 'fabrica.']
-const TITULO_ESTREITO = ['Inox direto', 'de quem fabrica.']
+const TITULO_LARGO = ['Linha', 'sanitária', 'em inox', '304 e 316.']
+const TITULO_ESTREITO = ['Linha sanitária', 'em inox 304 e 316.']
 
 export function Hero({ pronto }: PropsHero) {
   const ref = useRef<HTMLElement>(null)
@@ -174,18 +147,17 @@ export function Hero({ pronto }: PropsHero) {
           />
 
           <motion.p className="texto-apoio hero-apoio" {...entrada(2)}>
-            Usinagem, polimento e solda no mesmo lugar. As peças prontas estão no Mercado Livre.
-            O que for sob medida, você pede pelo WhatsApp.
+            Conexões Tri-Clamp, SMS, RJT, DIN, OD, BSP e NPT. Peças sob desenho ou amostra, com
+            usinagem, soldagem e polimento na própria oficina.
           </motion.p>
 
           <motion.div className="hero-acoes" {...entrada(3)}>
-            <BotaoMercadoLivre magnetico />
-            <BotaoWhatsApp magnetico mensagem={mensagens.sobMedida} />
+            <BotaoWhatsApp magnetico texto="Cotar no WhatsApp" mensagem={mensagens.linhaSanitaria} />
+            <BotaoLigar magnetico />
           </motion.div>
         </div>
       </div>
 
-      <HeroServicos pronto={pronto} />
     </section>
   )
 }

@@ -1,5 +1,5 @@
 import { navegacao } from '../../data/conteudo'
-import { site, mensagens, waLink } from '../../lib/site'
+import { site, mensagens, telLink, waLink } from '../../lib/site'
 import { IconeSair } from '../ui/icons'
 import { Marca } from './Navbar'
 
@@ -12,7 +12,8 @@ export function Footer() {
         <div className="rodape-marca">
           <Marca altura={64} />
           <p className="texto-menor rodape-frase">
-            Peças em aço inox, usinagem, polimento e solda.
+            Linha sanitária em inox 304 e 316: conexões, peças sob desenho ou amostra, usinagem,
+            soldagem e polimento.
           </p>
         </div>
 
@@ -26,12 +27,12 @@ export function Footer() {
         </nav>
 
         <div className="rodape-coluna">
-          <h2 className="rotulo rodape-titulo">Comprar e falar</h2>
-          <a href={site.mercadoLivre} target="_blank" rel="noopener noreferrer" className="rodape-link">
-            Loja no Mercado Livre <IconeSair />
-          </a>
+          <h2 className="rotulo rodape-titulo">Fale com a gente</h2>
           <a href={waLink(mensagens.geral)} target="_blank" rel="noopener noreferrer" className="rodape-link">
             WhatsApp {site.whatsappExibicao} <IconeSair />
+          </a>
+          <a href={telLink} className="rodape-link">
+            Telefone {site.telefoneExibicao}
           </a>
           <a href="#orcamento" className="rodape-link">
             Pedir orçamento

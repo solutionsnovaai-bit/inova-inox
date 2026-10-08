@@ -1,10 +1,10 @@
 import { useRef, type AnchorHTMLAttributes, type ReactNode } from 'react'
 import { cn } from '../../lib/util'
 import { useMagnetic } from '../../hooks/ponteiro'
-import { site, mensagens, waLink } from '../../lib/site'
-import { IconeSacola, IconeConversa } from './icons'
+import { site, mensagens, telLink, waLink } from '../../lib/site'
+import { IconeConversa, IconeTelefone } from './icons'
 
-export type VarianteBotao = 'ml' | 'zap' | 'aco' | 'linha' | 'tinta'
+export type VarianteBotao = 'zap' | 'aco' | 'linha' | 'tinta'
 
 type PropsBotao = AnchorHTMLAttributes<HTMLAnchorElement> & {
   variante?: VarianteBotao
@@ -48,25 +48,20 @@ export function Botao({
   )
 }
 
-type PropsBotaoMercadoLivre = {
+type PropsBotaoLigar = {
   texto?: string
+  variante?: VarianteBotao
   compacto?: boolean
   largo?: boolean
   magnetico?: boolean
   className?: string
 }
 
-/** Botão amarelo. No site inteiro, amarelo significa "comprar no Mercado Livre". */
-export function BotaoMercadoLivre({ texto = 'Comprar no Mercado Livre', ...resto }: PropsBotaoMercadoLivre) {
+/** Liga para o telefone fixo. No computador, abre o aplicativo de chamadas do sistema. */
+export function BotaoLigar({ texto = `Ligar ${site.telefoneExibicao}`, variante = 'linha', ...resto }: PropsBotaoLigar) {
   return (
-    <Botao
-      variante="ml"
-      href={site.mercadoLivre}
-      externo
-      aria-label={`${texto} (abre em nova aba)`}
-      {...resto}
-    >
-      <IconeSacola />
+    <Botao variante={variante} href={telLink} aria-label={`Ligar para ${site.telefoneExibicao}`} {...resto}>
+      <IconeTelefone />
       {texto}
     </Botao>
   )
@@ -85,7 +80,7 @@ type PropsBotaoWhatsApp = {
 export function BotaoWhatsApp({
   texto = 'Pedir orçamento no WhatsApp',
   mensagem = mensagens.geral,
-  variante = 'linha',
+  variante = 'zap',
   ...resto
 }: PropsBotaoWhatsApp) {
   return (

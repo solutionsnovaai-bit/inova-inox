@@ -3,7 +3,7 @@ import { motion, useScroll, useSpring } from 'framer-motion'
 import { useInercia } from '../../hooks/useInercia'
 import { mensagens, waLink } from '../../lib/site'
 import { IconeConversa } from '../ui/icons'
-import { BotaoMercadoLivre } from '../ui/Botoes'
+import { BotaoLigar } from '../ui/Botoes'
 
 /**
  * Balão flutuante do WhatsApp com inércia de rolagem.
@@ -32,12 +32,13 @@ export function WhatsAppFab() {
 }
 
 /**
- * Barra fixa no rodapé da tela do celular com o botão de compra.
+ * Barra fixa no rodapé da tela do celular com o telefone fixo. O WhatsApp
+ * fica com o balão flutuante e com o botão da barra do topo.
  * Aparece depois do hero e sai de cena quando a chamada final ou o
  * rodapé entram na tela (os trechos marcados com data-esconde-barra),
  * para não repetir o botão que já está ali.
  */
-export function BarraCompra() {
+export function BarraContato() {
   const [passouHero, setPassouHero] = useState(false)
   const [encoberta, setEncoberta] = useState(false)
 
@@ -63,8 +64,8 @@ export function BarraCompra() {
   const visivel = passouHero && !encoberta
 
   return (
-    <div className="barra-compra" data-visivel={visivel || undefined} aria-hidden={!visivel}>
-      <BotaoMercadoLivre largo />
+    <div className="barra-contato" data-visivel={visivel || undefined} aria-hidden={!visivel}>
+      <BotaoLigar variante="aco" largo />
     </div>
   )
 }

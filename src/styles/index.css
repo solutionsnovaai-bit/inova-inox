@@ -18,7 +18,6 @@
   --color-azul: #0471e5;
   --color-azul-claro: #4fa3ff;
   --color-faisca: #ff8a1f;
-  --color-ml: #ffe600;
   --color-zap: #25d366;
   --color-escovado: #e4e7ea;
   --color-tinta: #0a0d11;
@@ -359,10 +358,6 @@
     height: 1.3rem;
   }
 
-  .botao--ml {
-    background: var(--color-ml);
-    color: var(--color-tinta);
-  }
   .botao--zap {
     background: var(--color-zap);
     color: #03170b;

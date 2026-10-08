@@ -1,55 +1,106 @@
-import { type Foto, galeria } from '../../lib/fotos'
-import { Imagem } from '../ui/Imagem'
-import { textoGaleria } from '../../data/conteudo'
+import { useEffect, useRef, type CSSProperties } from 'react'
+import { type Midia, oficina } from '../../lib/fotos'
 import { Marquee } from '../ui/Marquee'
 import { Surgir, Titulo } from '../ui/Titulo'
 
-type PropsFotoGaleria = { foto: Foto }
+type PropsVideo = { midia: Midia }
 
-export function FotoGaleria({ foto }: PropsFotoGaleria) {
+/**
+ * Vídeo da oficina, sem som e em loop. Só baixa e toca quando está perto
+ * da tela; fora dela, pausa. Assim o carrossel não pesa no celular.
+ */
+export function VideoOficina({ midia }: PropsVideo) {
+  const ref = useRef<HTMLVideoElement>(null)
+
+  useEffect(() => {
+    const video = ref.current
+    if (!video) return
+    video.muted = true
+    if (!('IntersectionObserver' in window)) {
+      video.play().catch(() => {})
+      return
+    }
+    const io = new IntersectionObserver(
+      ([entrada]) => {
+        if (entrada.isIntersecting) video.play().catch(() => {})
+        else video.pause()
+      },
+      { rootMargin: '120px 240px' },
+    )
+    io.observe(video)
+    return () => io.disconnect()
+  }, [])
+
   return (
-    <figure className="galeria-foto chanfro">
-      <Imagem foto={foto} />
+    <video
+      ref={ref}
+      className="imagem"
+      src={midia.src}
+      poster={midia.capa}
+      muted
+      loop
+      playsInline
+      preload="none"
+      aria-label={midia.legenda}
+      disablePictureInPicture
+    />
+  )
+}
+
+type PropsItem = { midia: Midia }
+
+export function ItemOficina({ midia }: PropsItem) {
+  return (
+    <figure className="galeria-item chanfro" style={{ '--proporcao': midia.proporcao } as CSSProperties}>
+      {midia.tipo === 'video' ? (
+        <VideoOficina midia={midia} />
+      ) : (
+        <img className="imagem" src={midia.src} alt={midia.legenda} loading="lazy" decoding="async" draggable={false} />
+      )}
+      <figcaption className="galeria-legenda rotulo">{midia.legenda}</figcaption>
     </figure>
   )
 }
 
 /**
- * Carrossel duplo de fotos. Lê tudo o que estiver em src/assets/galeria.
- * Enquanto a pasta estiver vazia, a seção não aparece.
+ * Carrossel da oficina: vídeos e fotos reais, rodando sozinhos.
+ * Lê tudo o que estiver em src/assets/oficina. Vídeos na faixa de cima,
+ * fotos na de baixo, cada faixa para um lado.
  */
 export function Galeria() {
-  if (galeria.length === 0) return null
+  if (oficina.length === 0) return null
 
-  const meio = Math.ceil(galeria.length / 2)
-  const cima = galeria.slice(0, meio)
-  const baixo = galeria.slice(meio)
+  const videos = oficina.filter((m) => m.tipo === 'video')
+  const fotos = oficina.filter((m) => m.tipo === 'foto')
+  const faixas = [videos, fotos].filter((lista) => lista.length > 0)
 
   return (
-    <section id="galeria" aria-label="Fotos de trabalhos em inox" className="secao secao--sangra bg-preto">
+    <section id="oficina" aria-label="Vídeos e fotos da oficina" className="secao secao--sangra bg-preto">
       <div className="conteudo cabecalho">
-        <Titulo className="titulo-secao text-white" linhas={textoGaleria.titulo} />
+        <Titulo className="titulo-secao text-white" linhas={['Direto da', 'nossa oficina.']} />
         <Surgir ordem={1}>
-          <p className="texto-apoio">{textoGaleria.apoio}</p>
+          <p className="texto-apoio">
+            Polimento, acabamento e o estoque de conexões da linha sanitária. Tudo gravado aqui, na
+            bancada da Inova Inox.
+          </p>
         </Surgir>
       </div>
 
       <div className="galeria">
-        <Marquee duracao={cima.length * 11} className="galeria-faixa">
-          {cima.map((foto) => (
-            <FotoGaleria key={foto.id} foto={foto} />
-          ))}
-        </Marquee>
-        {baixo.length > 0 && (
-          <Marquee duracao={baixo.length * 13} inverso className="galeria-faixa">
-            {baixo.map((foto) => (
-              <FotoGaleria key={foto.id} foto={foto} />
+        {faixas.map((lista, i) => (
+          <Marquee
+            key={i}
+            duracao={lista.length * (i === 0 ? 8 : 7)}
+            inverso={i % 2 === 1}
+            preencher
+            className={`galeria-faixa galeria-faixa--${i === 0 && videos.length ? 'videos' : 'fotos'}`}
+          >
+            {lista.map((midia) => (
+              <ItemOficina key={midia.id} midia={midia} />
             ))}
           </Marquee>
-        )}
+        ))}
       </div>
-
-      <p className="conteudo texto-menor galeria-nota">Imagens ilustrativas.</p>
     </section>
   )
 }

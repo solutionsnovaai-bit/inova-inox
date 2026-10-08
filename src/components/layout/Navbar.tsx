@@ -5,7 +5,7 @@ import { cn, EASE, EASE_CORTE } from '../../lib/util'
 import { navegacao } from '../../data/conteudo'
 import { site } from '../../lib/site'
 import { useTravaRolagem, useRolou } from '../../hooks/basicos'
-import { BotaoMercadoLivre, BotaoWhatsApp } from '../ui/Botoes'
+import { BotaoLigar, BotaoWhatsApp } from '../ui/Botoes'
 import { IconeFechar, IconeMenu } from '../ui/icons'
 
 type PropsMarca = { className?: string; altura?: number }
@@ -75,8 +75,8 @@ export function MenuMobile({ aberto, aoFechar }: PropsMenuMobile) {
           </nav>
 
           <div className="menu-base">
-            <BotaoMercadoLivre largo />
             <BotaoWhatsApp largo texto={`WhatsApp ${site.whatsappExibicao}`} />
+            <BotaoLigar largo />
           </div>
         </motion.div>
       )}
@@ -107,7 +107,7 @@ export function Navbar({ visivel }: PropsNavbar) {
           </nav>
 
           <div className="nav-acoes">
-            <BotaoMercadoLivre texto="Comprar" compacto className="nav-comprar" />
+            <BotaoWhatsApp texto="Cotar" compacto className="nav-comprar" />
             <button
               type="button"
               className="nav-menu"

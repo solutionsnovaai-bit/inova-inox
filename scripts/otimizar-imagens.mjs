@@ -5,10 +5,12 @@
  *
  *   imagens-brutas/hero/hero-desktop.png     foto 16:9 do hero
  *   imagens-brutas/hero/hero-mobile.png      foto 9:16 do hero
- *   imagens-brutas/galeria/01-torno.png      fotos 4:3, numeradas de 01 a 10
+ *   imagens-brutas/cenas/01-torno.png        fotos 4:3 dos serviços (01 usinagem, 02 solda, 04 polimento)
+ *   imagens-brutas/oficina/10-curvas.jpg     fotos reais do carrossel da oficina, numeradas
  *
- * e rode `npm run imagens`. O resultado vai para src/assets/hero e
- * src/assets/galeria em WEBP. Se as pastas não existirem, crie-as.
+ * e rode `npm run imagens`. O resultado vai para src/assets/hero,
+ * src/assets/cenas e src/assets/oficina em WEBP. Se as pastas não existirem, crie-as.
+ * Os vídeos do carrossel não passam por aqui: veja docs/IMAGENS.md.
  */
 import { mkdir, readdir } from 'node:fs/promises'
 import path from 'node:path'
@@ -91,19 +93,21 @@ async function hero() {
   }
 }
 
-async function galeria() {
-  const pasta = path.join(BRUTAS, 'galeria')
-  const arquivos = await listar(pasta)
-  if (!arquivos.length) return console.log('galeria: nenhuma imagem em imagens-brutas/galeria')
-  await mkdir(path.join(SAIDA, 'galeria'), { recursive: true })
-  console.log('galeria')
+/** Converte uma pasta inteira para WEBP, limitando a largura. */
+async function pasta(nome, largura) {
+  const origem = path.join(BRUTAS, nome)
+  const arquivos = await listar(origem)
+  if (!arquivos.length) return console.log(`${nome}: nenhuma imagem em imagens-brutas/${nome}`)
+  await mkdir(path.join(SAIDA, nome), { recursive: true })
+  console.log(nome)
 
   for (const arquivo of arquivos) {
-    const imagem = sharp(path.join(pasta, arquivo)).resize({ width: 1200, withoutEnlargement: true })
-    await gravar(imagem, path.join(SAIDA, 'galeria', semExtensao(arquivo)), 80)
+    const imagem = sharp(path.join(origem, arquivo)).rotate().resize({ width: largura, withoutEnlargement: true })
+    await gravar(imagem, path.join(SAIDA, nome, semExtensao(arquivo)), 80)
   }
 }
 
 await hero()
-await galeria()
+await pasta('cenas', 1200)
+await pasta('oficina', 1080)
 console.log('pronto')

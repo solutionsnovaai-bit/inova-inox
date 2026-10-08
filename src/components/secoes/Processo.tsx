@@ -5,20 +5,20 @@ import { mensagens } from '../../lib/site'
 import { BotaoWhatsApp } from '../ui/Botoes'
 import { Surgir, Titulo } from '../ui/Titulo'
 
-/** Os quatro passos da peça sob medida. A linha azul enche conforme a rolagem. */
+/** Os quatro passos da peça sob desenho ou amostra. A linha azul enche conforme a rolagem. */
 export function Processo() {
   const ref = useRef<HTMLOListElement>(null)
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start 78%', 'end 55%'] })
   const avanco = useSpring(scrollYProgress, { stiffness: 90, damping: 24 })
 
   return (
-    <section id="sob-medida" aria-label="Como funciona a peça sob medida" className="secao escovado-escuro">
+    <section id="sob-medida" aria-label="Peças sob desenho ou amostra" className="secao bg-preto">
       <div className="conteudo">
         <div className="cabecalho">
-          <Titulo className="titulo-secao text-white" linhas={['Sob medida', 'em quatro passos.']} />
+          <Titulo className="titulo-secao text-white" linhas={['Sob desenho', 'ou amostra.']} />
           <Surgir ordem={1}>
             <p className="texto-apoio">
-              Para a peça que não existe pronta, o caminho é este. Começa com uma mensagem.
+              Para a peça que não é de linha, o caminho é este. Começa com uma mensagem.
             </p>
           </Surgir>
         </div>
@@ -36,7 +36,7 @@ export function Processo() {
           ))}
         </ol>
 
-        <BotaoWhatsApp texto="Começar pelo WhatsApp" mensagem={mensagens.sobMedida} variante="zap" magnetico />
+        <BotaoWhatsApp texto="Mandar desenho no WhatsApp" mensagem={mensagens.sobDesenho} magnetico />
       </div>
     </section>
   )

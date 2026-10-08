@@ -10,14 +10,14 @@ export function dadosEstruturados() {
     name: site.nome,
     description: site.descricao,
     ...(site.url ? { url: site.url, logo: `${site.url}/icon-512.png`, image: `${site.url}/og.jpg` } : {}),
-    contactPoint: {
+    telephone: `+${site.telefone}`,
+    contactPoint: [site.telefone, site.whatsapp].map((numero) => ({
       '@type': 'ContactPoint',
-      telephone: `+${site.whatsapp}`,
+      telephone: `+${numero}`,
       contactType: 'sales',
       areaServed: 'BR',
       availableLanguage: 'Portuguese',
-    },
-    sameAs: [site.mercadoLivre],
+    })),
   }
 
   const faq = {

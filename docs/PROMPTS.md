@@ -39,7 +39,10 @@ LUZ E CÂMERA: fotografia de produto cinematográfica, ARRI Alexa 35 com lente Z
 PROIBIDO: qualquer texto além do logotipo, número de telefone, ícone de aplicativo, pessoas, mãos, marca d'água, letras distorcidas ou inventadas, aparência de render plástico.
 ```
 
-## Carrossel (10 imagens)
+## Fotos dos serviços (banco original de 10 cenas)
+
+Hoje o site usa só as cenas 01 (usinagem), 02 (solda) e 04 (polimento), nos painéis de serviço.
+O carrossel passou a mostrar vídeos e fotos reais da oficina (`src/assets/oficina`).
 
 Cole no gerador de imagens, sem anexo. Salve cada resultado com o número da cena
 no começo do nome (`01-torno.png`, `02-arco-de-solda.png` e assim por diante).

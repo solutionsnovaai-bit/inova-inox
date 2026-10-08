@@ -1,7 +1,17 @@
 # Inova Inox
 
-Site da Inova Inox: fabricante de peças em aço inox, com serviços de usinagem, polimento e solda.
-O objetivo do site é levar o visitante a comprar pelo Mercado Livre e a pedir orçamento pelo WhatsApp.
+Site da Inova Inox: linha sanitária e conexões em inox 304 e 316, peças sob desenho ou amostra
+e serviços de usinagem, soldagem e polimento/acabamento.
+O objetivo do site é levar o visitante a pedir cotação pelo WhatsApp ou ligar para o telefone fixo.
+
+## Contatos usados no site
+
+| Canal | Número | Onde trocar |
+| --- | --- | --- |
+| WhatsApp | (11) 98198-7909 | `src/lib/site.ts` (`whatsapp` e `whatsappExibicao`) |
+| Telefone fixo | (11) 2705-1775 | `src/lib/site.ts` (`telefone` e `telefoneExibicao`) |
+
+O número também aparece no `index.html` (descrição e texto sem JavaScript).
 
 ## Tecnologia
 
@@ -27,37 +37,47 @@ npm run build
 npm run preview
 ```
 
-## Publicar na Vercel
+## Publicação
 
-1. Suba esta pasta para um repositório no GitHub.
-2. Na Vercel, importe o repositório. O `vercel.json` já define o build.
-3. Em **Settings > Environment Variables**, cadastre:
+O repositório está ligado à Vercel: cada envio para a branch `main` publica o site sozinho.
+O `vercel.json` já define o build.
+
+Variável opcional em **Settings > Environment Variables**:
 
 | Variável | Para que serve | Exemplo |
 | --- | --- | --- |
 | `VITE_SITE_URL` | Endereço final do site, sem barra no fim. Usado na imagem de compartilhamento. | `https://www.inovainox.com.br` |
-| `VITE_ML_URL` | Link da loja no Mercado Livre. Todos os botões amarelos usam este link. | `https://www.mercadolivre.com.br/pagina/sualoja` |
 
-Sem `VITE_ML_URL`, os botões levam a uma busca por "inova inox" no Mercado Livre.
-Troque pelo link da página do vendedor antes de divulgar o site.
+## Ordem da página
+
+1. Hero: linha sanitária em inox 304 e 316, WhatsApp e telefone
+2. Linha sanitária: as quatro frentes e os sete padrões de conexão
+3. Conexões: curvas, tês, reduções, espigões, niples, uniões, abraçadeiras e peça sob desenho
+4. Oficina: carrossel com vídeos e fotos reais
+5. Serviços: usinagem, soldagem e polimento
+6. Sob desenho ou amostra: os quatro passos
+7. Guia 304 ou 316
+8. Orçamento (monta a mensagem do WhatsApp)
+9. Dúvidas
+10. Chamada final e rodapé
 
 ## Onde mexer
 
 | O que | Arquivo |
 | --- | --- |
-| WhatsApp, link da loja, textos de SEO, mensagens prontas | `src/lib/site.ts` |
-| Todos os textos e listas (peças, serviços, passos, guia, dúvidas) | `src/data/conteudo.ts` |
+| WhatsApp, telefone, textos de SEO, mensagens prontas | `src/lib/site.ts` |
+| Padrões de conexão, peças, serviços, passos, guia e dúvidas | `src/data/conteudo.ts` |
+| Desenho técnico de cada peça | `src/components/desenhos/DesenhoPeca.tsx` |
+| Legendas dos vídeos e fotos da oficina | `src/lib/fotos.ts` |
 | Cores, fontes e botões | `src/styles/index.css` |
 | Tempos da tela de carregamento | `src/lib/roteiroLoader.ts` |
 | Física do balão do WhatsApp | `src/hooks/useInercia.ts` |
 
-## Imagens
+## Imagens e vídeos
 
-As fotos ficam em `src/assets/hero` e `src/assets/galeria`. O site lê essas pastas sozinho:
-para trocar uma foto, basta substituir o arquivo mantendo o nome.
-
-Para preparar fotos novas a partir dos originais, veja `docs/IMAGENS.md`.
-Os prompts usados para gerar as fotos estão em `docs/PROMPTS.md`.
+O site lê as pastas de `src/assets` sozinho: para trocar uma foto, basta substituir o arquivo
+mantendo o nome. Para acrescentar vídeo ou foto ao carrossel, veja `docs/IMAGENS.md`.
+Os prompts usados para gerar as fotos do hero e dos serviços estão em `docs/PROMPTS.md`.
 
 ## Estrutura
 
@@ -66,10 +86,10 @@ public/                 favicon, ícones, imagem de compartilhamento
 scripts/                preparo das imagens
 docs/                   prompts e guia de imagens
 src/
-  assets/               logotipo em camadas, fotos do hero e da galeria
+  assets/               logotipo em camadas, hero, fotos dos serviços, vídeos e fotos da oficina
   components/
     loader/             tela de carregamento
-    layout/             barra do topo, menu, rodapé, balão do WhatsApp
+    layout/             barra do topo, menu, rodapé, balão do WhatsApp, barra de ligar
     hero/               primeira tela
     secoes/             demais seções da página
     desenhos/           desenhos técnicos em SVG
@@ -80,34 +100,12 @@ src/
   styles/               index (tokens e base), loader, layout e seções
 ```
 
-## Pendências antes de divulgar
+## Pendências
 
-Itens que dependem de informação da Inova Inox. O site funciona sem eles,
-mas cada um melhora o resultado.
-
-### Obrigatórias
-
-- [ ] **Link da loja no Mercado Livre.** Cadastrar em `VITE_ML_URL` na Vercel
-      (ou trocar em `src/lib/site.ts`). Hoje os botões amarelos levam a uma busca por
-      "inova inox", que pode mostrar anúncios de outros vendedores.
 - [ ] **Domínio do site.** Cadastrar em `VITE_SITE_URL` para a imagem de compartilhamento
       aparecer no WhatsApp e nas redes.
-
-### Conferir com o cliente
-
-- [ ] **Famílias de peças** (`src/data/conteudo.ts`). Estão descritas pelo processo
-      (torneadas, fresadas, soldadas, polidas). Se houver linha de produto definida,
-      trocar pelos nomes reais.
-- [ ] **Textos dos serviços** (`src/data/conteudo.ts`). Conferir se a lista de cada serviço
-      bate com o que a oficina faz: reparo de peça trincada, lote unitário, acabamento do cordão.
-- [ ] **Dúvidas frequentes** (`src/data/conteudo.ts`). As respostas não prometem prazo, garantia
-      nem preço. Se houver política definida, vale escrever.
-- [ ] **Endereço e horário.** O site não mostra endereço. Se a oficina atende no local,
+- [ ] **Endereço e horário.** O site não mostra endereço. Se a empresa atende no local,
       incluir no rodapé (`src/components/layout/Footer.tsx`).
 - [ ] **Instagram ou outras redes.** Não há links de redes no rodapé.
-
-### Sobre as fotos
-
-As fotos do hero e da galeria são imagens ilustrativas geradas por IA, e a galeria avisa isso.
-Quando houver fotos reais das peças e da oficina, basta substituir os arquivos em
-`src/assets/galeria` (ver `docs/IMAGENS.md`).
+- [ ] **Fotos dos serviços.** Os painéis de usinagem, soldagem e polimento ainda usam imagens
+      ilustrativas (`src/assets/cenas`). Com fotos reais da oficina, basta trocar os arquivos.

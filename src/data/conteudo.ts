@@ -1,63 +1,94 @@
-import { mensagens } from '../lib/site'
+import { mensagemPeca, mensagens } from '../lib/site'
 
 export const navegacao = [
-  { rotulo: 'Peças', destino: '#pecas' },
+  { rotulo: 'Linha sanitária', destino: '#linha-sanitaria' },
+  { rotulo: 'Conexões', destino: '#conexoes' },
   { rotulo: 'Serviços', destino: '#servicos' },
-  { rotulo: 'Polimento', destino: '#polimento' },
-  { rotulo: 'Guia do inox', destino: '#guia' },
+  { rotulo: 'Oficina', destino: '#oficina' },
   { rotulo: 'Dúvidas', destino: '#duvidas' },
 ] as const
 
-export const passosCompra = [
-  {
-    titulo: 'Abra a loja',
-    texto: 'O botão amarelo leva direto aos anúncios da Inova Inox no Mercado Livre.',
-  },
-  {
-    titulo: 'Escolha a peça',
-    texto: 'Confira medidas, material e fotos no anúncio. Ficou em dúvida? Pergunte por lá ou chame no WhatsApp.',
-  },
-  {
-    titulo: 'Pague e acompanhe',
-    texto: 'O pagamento e o rastreio da entrega ficam dentro do próprio Mercado Livre.',
-  },
+/** Ligas de inox em que a linha sanitária é fornecida. */
+export const materiais = ['304', '316'] as const
+
+/** Padrões de conexão da linha sanitária, com uma explicação curta de cada um. */
+export const normas = [
+  { nome: 'Tri-Clamp', texto: 'Engate rápido por abraçadeira, com anel de vedação entre as férulas.' },
+  { nome: 'SMS', texto: 'Padrão sueco de união roscada, com porca e anel de vedação.' },
+  { nome: 'RJT', texto: 'Padrão inglês de união roscada, com porca e anel de vedação.' },
+  { nome: 'DIN', texto: 'Padrão alemão de união roscada, a DIN 11851.' },
+  { nome: 'OD', texto: 'Pontas medidas pelo diâmetro externo do tubo, para solda.' },
+  { nome: 'BSP', texto: 'Rosca de padrão britânico.' },
+  { nome: 'NPT', texto: 'Rosca cônica de padrão americano.' },
 ] as const
 
+export type IdPeca =
+  | 'curva'
+  | 'te'
+  | 'reducao'
+  | 'espigao'
+  | 'niple'
+  | 'uniao'
+  | 'abracadeira'
+  | 'sob-desenho'
+
 export type Peca = {
-  id: 'torneada' | 'fresada' | 'soldada' | 'polida'
+  id: IdPeca
   nome: string
   texto: string
-  processo: string
+  /** Mensagem que abre no WhatsApp quando o cartão é tocado. */
+  mensagem: string
 }
 
-/**
- * Famílias de peças, descritas pelo processo de fabricação.
- * Quando o catálogo real estiver definido, troque nomes e textos aqui.
- */
+/** Peças da linha sanitária. Cada cartão abre o WhatsApp já com a peça na mensagem. */
 export const pecas: Peca[] = [
   {
-    id: 'torneada',
-    nome: 'Peças torneadas',
-    texto: 'Formas cilíndricas feitas no torno, com diâmetros e encaixes na medida.',
-    processo: 'Usinagem',
+    id: 'curva',
+    nome: 'Curvas',
+    texto: 'Mudam a direção da linha, com pontas para solda ou já com conexão.',
+    mensagem: mensagemPeca('curvas'),
   },
   {
-    id: 'fresada',
-    nome: 'Peças fresadas',
-    texto: 'Faces planas, rasgos e furações abertos no inox maciço.',
-    processo: 'Usinagem',
+    id: 'te',
+    nome: 'Tês',
+    texto: 'Abrem uma derivação na linha, com saídas do mesmo diâmetro ou reduzidas.',
+    mensagem: mensagemPeca('tês'),
   },
   {
-    id: 'soldada',
-    nome: 'Conjuntos soldados',
-    texto: 'Partes de inox unidas por solda e entregues como uma peça só.',
-    processo: 'Solda',
+    id: 'reducao',
+    nome: 'Reduções',
+    texto: 'Ligam tubos e conexões de diâmetros diferentes.',
+    mensagem: mensagemPeca('reduções'),
   },
   {
-    id: 'polida',
-    nome: 'Peças polidas',
-    texto: 'Acabamento do escovado ao espelhado, para peça que fica à vista.',
-    processo: 'Polimento',
+    id: 'espigao',
+    nome: 'Espigões',
+    texto: 'Ponta serrilhada para prender mangueira na linha.',
+    mensagem: mensagemPeca('espigões'),
+  },
+  {
+    id: 'niple',
+    nome: 'Niples',
+    texto: 'Pontas roscadas para ligar a linha a peças e equipamentos com rosca.',
+    mensagem: mensagemPeca('niples'),
+  },
+  {
+    id: 'uniao',
+    nome: 'Uniões',
+    texto: 'Porca, macho e vedação para montar e desmontar a linha.',
+    mensagem: mensagemPeca('uniões'),
+  },
+  {
+    id: 'abracadeira',
+    nome: 'Abraçadeiras',
+    texto: 'Fecham o engate Tri-Clamp entre duas férulas.',
+    mensagem: mensagemPeca('abraçadeiras'),
+  },
+  {
+    id: 'sob-desenho',
+    nome: 'Sob desenho ou amostra',
+    texto: 'A peça que não é de linha, fabricada pela medida que você mandar.',
+    mensagem: mensagens.sobDesenho,
   },
 ]
 
@@ -69,7 +100,7 @@ export type Servico = {
   pontos: string[]
   mensagem: string
   legendaDesenho: string
-  /** Número da cena do banco de imagens que ilustra o serviço. */
+  /** Número da foto em src/assets/cenas que ilustra o serviço. */
   cena: string
 }
 
@@ -77,12 +108,12 @@ export const servicos: Servico[] = [
   {
     id: 'usinagem',
     nome: 'Usinagem',
-    chamada: 'O inox maciço vira peça.',
+    chamada: 'Do tarugo à peça na medida.',
     texto:
-      'A usinagem tira material até sobrar exatamente a forma do desenho. É o processo certo quando o encaixe depende de medida.',
+      'Torno e fresa tiram material até sobrar exatamente a forma do desenho. É o processo certo quando a vedação e o encaixe dependem de medida.',
     pontos: [
-      'Peças a partir de desenho, foto ou amostra',
-      'Diâmetros, roscas, rasgos e furações',
+      'Peças a partir de desenho ou amostra',
+      'Roscas, férulas, encaixes e furações',
       'Uma peça só ou um lote',
     ],
     mensagem: mensagens.usinagem,
@@ -90,11 +121,26 @@ export const servicos: Servico[] = [
     cena: '01',
   },
   {
+    id: 'solda',
+    nome: 'Soldagem',
+    chamada: 'Duas peças viram uma.',
+    texto:
+      'A solda em inox pede calor controlado para unir sem empenar e sem manchar. Depois, o cordão pode ser lixado e polido até sumir.',
+    pontos: [
+      'União de tubos, curvas, tês e conexões de inox',
+      'Reparo de peças trincadas ou quebradas',
+      'Acabamento do cordão no padrão da peça',
+    ],
+    mensagem: mensagens.soldagem,
+    legendaDesenho: 'Junta soldada com o cordão e o símbolo de solda do desenho técnico',
+    cena: '02',
+  },
+  {
     id: 'polimento',
     nome: 'Polimento',
-    chamada: 'Do fosco ao espelho.',
+    chamada: 'Acabamento do fosco ao espelho.',
     texto:
-      'O polimento vai alisando a superfície, lixa após lixa, até o inox refletir. Peça lisa também junta menos sujeira e limpa mais fácil.',
+      'Lixa após lixa, a superfície vai ficando lisa até o inox refletir. Na linha sanitária isso conta: superfície lisa junta menos resíduo e limpa mais fácil.',
     pontos: [
       'Acabamento escovado, acetinado ou espelhado',
       'Peças novas ou peças que perderam o brilho',
@@ -104,35 +150,20 @@ export const servicos: Servico[] = [
     legendaDesenho: 'Perfil da superfície antes e depois do polimento',
     cena: '04',
   },
-  {
-    id: 'solda',
-    nome: 'Solda',
-    chamada: 'Duas peças viram uma.',
-    texto:
-      'A solda em inox pede calor controlado para unir sem empenar e sem manchar. Depois, o cordão pode ser lixado e polido até sumir.',
-    pontos: [
-      'União de tubos, chapas e perfis de inox',
-      'Reparo de peças trincadas ou quebradas',
-      'Acabamento do cordão no padrão da peça',
-    ],
-    mensagem: mensagens.solda,
-    legendaDesenho: 'Junta soldada com o cordão e o símbolo de solda do desenho técnico',
-    cena: '02',
-  },
 ]
 
 export const processo = [
   {
     titulo: 'Mande o que você tem',
-    texto: 'Desenho, foto, amostra ou só as medidas. Tudo pelo WhatsApp.',
+    texto: 'Desenho, foto com as medidas ou a própria peça como amostra.',
   },
   {
     titulo: 'Receba o orçamento',
-    texto: 'A gente avalia o material, o processo e o acabamento e responde com valor e prazo.',
+    texto: 'A gente avalia material, processo e acabamento e responde com valor e prazo.',
   },
   {
     titulo: 'Fabricação',
-    texto: 'Usinagem, solda e polimento, na ordem que a peça pede.',
+    texto: 'Usinagem, soldagem e polimento, na ordem que a peça pede.',
   },
   {
     titulo: 'Entrega',
@@ -140,42 +171,32 @@ export const processo = [
   },
 ] as const
 
-/** Informações gerais sobre os tipos mais comuns de aço inox. */
+/** As duas ligas da linha sanitária, comparadas lado a lado. */
 export const ligas = [
   {
     nome: '304',
-    apelido: 'O mais usado',
+    apelido: 'O padrão da linha',
     composicao: 'Cerca de 18% de cromo e 8% de níquel',
-    ima: 'Em geral não gruda',
-    uso: 'Cozinhas, alimentos, corrimãos e uso interno em geral',
+    uso: 'Alimentos, bebidas, laticínios e uso geral em processo',
   },
   {
     nome: '316',
-    apelido: 'Para ambiente agressivo',
+    apelido: 'Para meio agressivo',
     composicao: 'Como o 304, com molibdênio a mais',
-    ima: 'Em geral não gruda',
-    uso: 'Litoral, piscina, produtos químicos e áreas com sal',
-  },
-  {
-    nome: '430',
-    apelido: 'O mais econômico',
-    composicao: 'Cromo sem níquel',
-    ima: 'Gruda',
-    uso: 'Ambientes secos e peças de acabamento',
+    uso: 'Produtos ácidos ou salinos, químicos, farmacêutico e limpeza pesada',
   },
 ] as const
 
 export const criterios = [
   { chave: 'composicao', rotulo: 'Do que é feito' },
-  { chave: 'ima', rotulo: 'Teste do ímã' },
   { chave: 'uso', rotulo: 'Onde vai bem' },
 ] as const
 
 export const notas = [
   {
-    titulo: 'Por que o inox não enferruja',
+    titulo: 'Por que a linha sanitária é polida',
     texto:
-      'O cromo do aço reage com o ar e forma uma película invisível que protege o metal. Se a peça risca, essa película se refaz sozinha.',
+      'Superfície lisa não segura resíduo nas ranhuras e limpa mais fácil. Por isso, na linha sanitária, o acabamento conta tanto quanto a medida.',
   },
   {
     titulo: 'Por que a solda escurece',
@@ -191,38 +212,33 @@ export const notas = [
 
 export const perguntas = [
   {
-    pergunta: 'Como eu compro as peças?',
+    pergunta: 'Vocês fornecem linha sanitária?',
     resposta:
-      'Pelo Mercado Livre. Os botões amarelos do site levam aos anúncios da Inova Inox, e a compra, o pagamento e a entrega acontecem por lá.',
+      'Sim. Conexões sanitárias em inox 304 e 316 nos padrões Tri-Clamp, SMS, RJT, DIN, OD, BSP e NPT: curvas, tês, reduções, espigões, niples, uniões, abraçadeiras e outras conexões.',
   },
   {
-    pergunta: 'Não achei a medida que preciso. E agora?',
+    pergunta: 'Como faço um pedido?',
     resposta:
-      'Mande a medida, uma foto ou o desenho pelo WhatsApp. A gente avalia e responde se dá para fabricar e por quanto.',
+      'Pelo WhatsApp ou pelo telefone fixo. Diga a peça, o padrão de conexão, o diâmetro, o inox (304 ou 316) e a quantidade.',
   },
   {
-    pergunta: 'Vocês fazem só uma peça?',
-    resposta: 'Depende da peça. Mande os detalhes pelo WhatsApp que a gente avalia, seja uma unidade ou um lote.',
+    pergunta: 'Vocês fabricam peça que não é de linha?',
+    resposta:
+      'Sim, sob desenho ou a partir de uma amostra. Mande o desenho ou uma foto com as medidas, ou combine com a gente o envio da peça.',
   },
   {
     pergunta: 'Posso levar uma peça minha para soldar ou polir?',
     resposta:
-      'Pode. Solda e polimento são serviços que também fazemos em peças do cliente. Envie fotos pelo WhatsApp para a gente avaliar antes.',
+      'Pode. Usinagem, soldagem e polimento também são feitos em peças do cliente. Envie fotos pelo WhatsApp para a gente avaliar antes.',
   },
   {
     pergunta: 'Qual é o prazo?',
     resposta:
-      'Nas compras pelo Mercado Livre, o prazo de entrega aparece no anúncio. Em serviço e peça sob medida, o prazo vem junto com o orçamento.',
+      'Depende da peça, da quantidade e do acabamento. O prazo vem junto com o orçamento.',
   },
   {
     pergunta: 'O que preciso mandar para pedir um orçamento?',
     resposta:
-      'O que você tiver: desenho, foto da peça, medidas principais, quantidade e onde a peça vai ser usada. Quanto mais detalhe, mais rápido sai o orçamento.',
+      'O que você tiver: desenho, foto da peça, padrão de conexão, diâmetro, tipo de inox, quantidade e onde a peça vai ser usada. Quanto mais detalhe, mais rápido sai o orçamento.',
   },
 ] as const
-
-/** Textos da seção de fotos. As imagens em si são lidas de src/assets/galeria. */
-export const textoGaleria = {
-  titulo: ['Inox de perto,', 'do cavaco ao brilho.'],
-  apoio: 'Torno, fresa, solda e polimento. É assim que uma barra de inox vira peça.',
-} as const

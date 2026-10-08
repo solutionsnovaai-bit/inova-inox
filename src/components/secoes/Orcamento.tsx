@@ -34,7 +34,7 @@ export function PreviaConversa({ mensagem }: PropsPreviaConversa) {
   )
 }
 
-const opcoes = ['Peça sob medida', 'Usinagem', 'Polimento', 'Solda'] as const
+const opcoes = ['Linha sanitária', 'Peça sob desenho', 'Usinagem', 'Soldagem', 'Polimento'] as const
 
 /**
  * Formulário de orçamento. Nada é enviado a servidor nenhum: os campos
@@ -61,7 +61,7 @@ export function Orcamento() {
           <Surgir ordem={1}>
             <p className="texto-apoio orcamento-apoio">
               Preencha o que souber. A mensagem abre pronta no seu WhatsApp, e por lá você manda a
-              foto ou o desenho.
+              foto, o desenho ou combina o envio da amostra.
             </p>
           </Surgir>
 
@@ -102,7 +102,7 @@ export function Orcamento() {
                   inputMode="numeric"
                   value={quantidade}
                   onChange={(e) => setQuantidade(e.target.value)}
-                  placeholder="Ex.: 10 peças"
+                  placeholder="Ex.: 20 curvas"
                 />
               </label>
             </div>
@@ -113,7 +113,7 @@ export function Orcamento() {
                 rows={4}
                 value={detalhes}
                 onChange={(e) => setDetalhes(e.target.value)}
-                placeholder="Medidas, tipo de inox, acabamento, onde a peça vai ser usada"
+                placeholder="Peça, padrão (Tri-Clamp, SMS, DIN...), diâmetro, inox 304 ou 316, acabamento"
               />
             </label>
 
