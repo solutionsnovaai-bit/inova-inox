@@ -108,3 +108,25 @@ export const oficina: Midia[] = Object.entries(oficinaArquivos)
 
 /** Busca uma mídia da oficina pelo nome do arquivo sem o número (ex.: 'curvas-polidas'). */
 export const midiaOficina = (chave: string) => oficina.find((m) => m.id.replace(/^\d+-/, '') === chave)
+
+/** Folhas do catálogo técnico: quatro páginas por imagem, em grade 2 x 2. */
+const folhaArquivos = import.meta.glob<string>('../assets/catalogo/*.{webp,jpg,png}', {
+  eager: true,
+  import: 'default',
+})
+const folhas = Object.entries(folhaArquivos)
+  .sort(ordenar)
+  .map(([, src]) => src)
+
+/** Largura dividida pela altura de uma página (A4 em 1400 x 1980). */
+export const PROPORCAO_PAGINA = 1400 / 1980
+
+/** Em qual folha está a página e em que canto dela. */
+export function recortePagina(indice: number) {
+  const posicao = indice % 4
+  return {
+    src: folhas[Math.floor(indice / 4)],
+    coluna: posicao % 2,
+    linha: Math.floor(posicao / 2),
+  }
+}

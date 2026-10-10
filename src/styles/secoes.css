@@ -201,6 +201,10 @@
   }
 
   /* ---------- peças ---------- */
+  .pecas-catalogo {
+    margin-top: 0.75rem;
+    color: var(--color-azul-claro);
+  }
   .pecas-grade {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -994,5 +998,432 @@
     animation-timing-function: linear !important;
     animation-iteration-count: infinite !important;
     animation-direction: var(--direcao, normal) !important;
+  }
+}
+
+@layer components {
+  /* ---------- catálogo técnico ---------- */
+  .cat-apoio {
+    color: var(--color-tinta-suave) !important;
+  }
+  .cat-grade {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(1.25rem, 3vw, 2.5rem);
+  }
+
+  /* Índice: no celular, fileiras de etiquetas que correm para o lado. */
+  .cat-indice {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+    min-width: 0;
+  }
+  .cat-indice-grupo,
+  .cat-visor {
+    min-width: 0;
+  }
+  .cat-indice-titulo {
+    margin-bottom: 0.55rem;
+    color: var(--color-tinta-suave);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.75rem;
+  }
+  .cat-indice-lista {
+    position: relative;
+    display: flex;
+    gap: 0.4rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-inline: calc(var(--margem) * -1);
+    padding-inline: var(--margem);
+  }
+  .cat-indice-lista::-webkit-scrollbar {
+    display: none;
+  }
+  .cat-indice-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-height: 2.5rem;
+    padding: 0.5rem 0.85rem;
+    white-space: nowrap;
+    border: 1px solid rgb(10 13 17 / 0.2);
+    background: rgb(255 255 255 / 0.55);
+    font-stretch: 108%;
+    font-weight: 600;
+    font-size: 0.875rem;
+    line-height: 1.2;
+    color: var(--color-tinta);
+    cursor: pointer;
+    transition: background 0.25s, color 0.25s, border-color 0.25s, box-shadow 0.25s;
+  }
+  .cat-indice-item:hover {
+    border-color: var(--color-tinta);
+  }
+  .cat-indice-item[data-ativo] {
+    background: var(--color-tinta);
+    border-color: var(--color-tinta);
+    color: #fff;
+  }
+  .cat-indice-pag {
+    font-size: 0.8125rem;
+    color: var(--color-azul);
+  }
+  .cat-indice-item[data-ativo] .cat-indice-pag {
+    color: var(--color-azul-claro);
+  }
+
+  /* Página: recorte de uma folha 2 x 2. */
+  .cat-pagina {
+    position: relative;
+    aspect-ratio: 1400 / 1980;
+    overflow: hidden;
+    background: #fff;
+  }
+  .cat-pagina img {
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    max-width: none;
+    user-select: none;
+  }
+  .cat-pagina--vazia {
+    background: #eef0f2;
+  }
+  .cat-pagina-botao {
+    display: block;
+    width: 100%;
+    cursor: zoom-in;
+  }
+
+  /* Celular: uma página por vez, deslizando. */
+  .cat-trilho {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    margin-inline: calc(var(--margem) * -1);
+    padding: 0.5rem var(--margem) 1.5rem;
+  }
+  .cat-trilho::-webkit-scrollbar {
+    display: none;
+  }
+  .cat-trilho-item {
+    flex: none;
+    width: min(84%, 30rem);
+    scroll-snap-align: center;
+    box-shadow: 0 18px 40px -18px rgb(10 13 17 / 0.55), 0 0 0 1px rgb(10 13 17 / 0.08);
+    cursor: zoom-in;
+  }
+
+  /* No celular os controles ficam acima das páginas, longe do balão do WhatsApp. */
+  .cat-visor {
+    display: flex;
+    flex-direction: column;
+  }
+  .cat-controles {
+    order: -1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.9rem;
+  }
+  .cat-legenda {
+    flex: 1;
+    min-width: 0;
+    max-width: 28rem;
+    display: grid;
+    justify-items: center;
+    gap: 0.15rem;
+    text-align: center;
+  }
+  .cat-legenda-num {
+    color: var(--color-azul);
+  }
+  .cat-legenda-titulo {
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--color-tinta);
+  }
+  .cat-seta {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    background: var(--color-tinta);
+    color: #fff;
+    cursor: pointer;
+    transition: transform 0.3s var(--ease-metal), background 0.25s, opacity 0.25s;
+  }
+  .cat-seta svg {
+    width: 1.35rem;
+    height: 1.35rem;
+  }
+  .cat-seta:hover:not(:disabled) {
+    background: var(--color-azul);
+    transform: scale(1.06);
+  }
+  .cat-seta:disabled {
+    opacity: 0.22;
+    cursor: default;
+  }
+
+  /* Desktop: livro aberto, com a folha virando em 3D. */
+  .livro-palco {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: clamp(0.75rem, 1.6vw, 1.5rem);
+  }
+  .livro {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: min(100%, calc((100svh - var(--altura-nav) - 8.5rem) * 2 * 1400 / 1980));
+    margin-inline: auto;
+    perspective: 2800px;
+  }
+  .livro-lado {
+    position: relative;
+    background: #fff;
+    box-shadow: 0 34px 60px -30px rgb(10 13 17 / 0.6);
+  }
+  .livro-lombada {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    z-index: 2;
+    width: 7%;
+    transform: translateX(-50%);
+    background: linear-gradient(90deg, transparent, rgb(0 0 0 / 0.1) 42%, rgb(0 0 0 / 0.2) 50%, rgb(0 0 0 / 0.1) 58%, transparent);
+    pointer-events: none;
+  }
+  .livro-folha {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    z-index: 3;
+    width: 50%;
+    transform-style: preserve-3d;
+  }
+  .livro-folha--dir {
+    left: 50%;
+    transform-origin: left center;
+  }
+  .livro-folha--esq {
+    left: 0;
+    transform-origin: right center;
+  }
+  .livro-face {
+    position: absolute;
+    inset: 0;
+    background: #fff;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+  .livro-face--verso {
+    transform: rotateY(180deg);
+  }
+  .livro-sombra {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgb(0 0 0 / 0.14), transparent 16%, transparent 84%, rgb(0 0 0 / 0.1));
+    pointer-events: none;
+  }
+
+  /* Verso da capa. */
+  .cat-guarda {
+    height: 100%;
+    aspect-ratio: 1400 / 1980;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1.1rem;
+    padding: clamp(1.25rem, 3vw, 2.75rem);
+    background-color: var(--color-chapa);
+    background-image: var(--tex-escovado);
+    background-size: 640px 320px;
+    color: var(--color-aco);
+  }
+  .cat-guarda-rotulo {
+    color: var(--color-azul-claro);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .cat-guarda-titulo {
+    font-size: clamp(1.6rem, 2.6vw, 2.6rem);
+    color: #fff;
+  }
+  .cat-guarda-dicas {
+    display: grid;
+    gap: 0.6rem;
+    padding-left: 1.1rem;
+    list-style: disc;
+  }
+  .cat-guarda .botao {
+    align-self: flex-start;
+  }
+
+  @media (min-width: 64rem) and (orientation: landscape) {
+    .cat-grade {
+      grid-template-columns: 15.5rem minmax(0, 1fr);
+      align-items: start;
+    }
+    .cat-indice {
+      position: sticky;
+      top: calc(var(--altura-nav) + 1.5rem);
+      gap: 1.3rem;
+    }
+    .cat-indice-lista {
+      display: grid;
+      gap: 0;
+      overflow: visible;
+      margin: 0;
+      padding: 0;
+      border-top: 1px solid rgb(10 13 17 / 0.16);
+    }
+    .cat-indice-item {
+      width: 100%;
+      justify-content: space-between;
+      min-height: 2.2rem;
+      padding: 0.4rem 0.25rem;
+      font-size: 0.84rem;
+      white-space: normal;
+      text-align: left;
+      border: 0;
+      border-bottom: 1px solid rgb(10 13 17 / 0.16);
+      background: transparent;
+    }
+    .cat-indice-item:hover {
+      color: var(--color-azul);
+    }
+    .cat-indice-item[data-ativo] {
+      background: transparent;
+      color: var(--color-azul);
+      box-shadow: inset 3px 0 0 var(--color-azul);
+      padding-left: 0.85rem;
+    }
+    .cat-indice-item[data-ativo] .cat-indice-pag {
+      color: var(--color-azul);
+    }
+    .cat-controles {
+      order: 0;
+      margin-top: 1.25rem;
+    }
+  }
+
+  /* ---------- página ampliada ---------- */
+  .cat-lupa {
+    position: fixed;
+    inset: 0;
+    z-index: 900;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    background: rgb(5 7 10 / 0.96);
+    color: #fff;
+  }
+  .cat-lupa-topo,
+  .cat-lupa-base {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.7rem var(--margem);
+  }
+  .cat-lupa-topo {
+    padding-top: max(0.7rem, env(safe-area-inset-top));
+    border-bottom: 1px solid var(--color-linha);
+  }
+  .cat-lupa-base {
+    padding-bottom: max(0.7rem, env(safe-area-inset-bottom));
+    border-top: 1px solid var(--color-linha);
+  }
+  .cat-lupa-topo p {
+    display: flex;
+    align-items: baseline;
+    gap: 0.7rem;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: var(--color-aco);
+  }
+  .cat-lupa-numero {
+    flex: none;
+    color: var(--color-azul-claro);
+  }
+  .cat-lupa-acoes {
+    flex: none;
+    display: flex;
+    gap: 0.5rem;
+  }
+  .cat-lupa-botao,
+  .cat-lupa-fechar {
+    min-height: 2.75rem;
+    border: 1px solid var(--color-linha);
+    color: #fff;
+    cursor: pointer;
+    transition: border-color 0.25s, background 0.25s;
+  }
+  .cat-lupa-botao {
+    padding: 0.5rem 0.9rem;
+  }
+  .cat-lupa-fechar {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+  }
+  .cat-lupa-fechar svg {
+    width: 1.3rem;
+    height: 1.3rem;
+  }
+  .cat-lupa-botao:hover,
+  .cat-lupa-fechar:hover {
+    border-color: var(--color-azul-claro);
+  }
+  .cat-lupa-area {
+    overflow: auto;
+    overscroll-behavior: contain;
+    padding: 1rem var(--margem);
+  }
+  .cat-lupa-folha {
+    width: min(100%, 52rem);
+    margin-inline: auto;
+    cursor: zoom-in;
+    box-shadow: 0 20px 60px rgb(0 0 0 / 0.5);
+  }
+  .cat-lupa-folha--zoom {
+    width: min(max(250vw, 900px), 1400px);
+    margin-inline: 0;
+    cursor: zoom-out;
+  }
+  @media (min-width: 64rem) {
+    .cat-lupa-folha--zoom {
+      margin-inline: auto;
+    }
+  }
+  .cat-lupa .cat-seta {
+    background: rgb(255 255 255 / 0.08);
+    border: 1px solid var(--color-linha);
+  }
+  .cat-lupa-cotar {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding: 0.6rem 1rem;
+    background: var(--color-zap);
+    color: #03170b;
+    text-align: center;
   }
 }

@@ -5,6 +5,7 @@ import { Footer } from './components/layout/Footer'
 import { Navbar } from './components/layout/Navbar'
 import { Seo } from './components/layout/Seo'
 import { Hero } from './components/hero/Hero'
+import { Catalogo } from './components/secoes/Catalogo'
 import { ChamadaFinal } from './components/secoes/ChamadaFinal'
 import { Faq } from './components/secoes/Faq'
 import { Galeria } from './components/secoes/Galeria'
@@ -40,6 +41,7 @@ export default function App() {
         <Hero pronto={aberto} />
         <LinhaSanitaria />
         <Pecas />
+        <Catalogo />
         <Galeria />
         <Servicos />
         <Processo />

@@ -51,6 +51,9 @@ export function Pecas() {
             Em inox 304 ou 316, nos padrões Tri-Clamp, SMS, RJT, DIN, OD, BSP e NPT. Toque na peça
             e o pedido de cotação abre no WhatsApp.
           </p>
+          <a href="#catalogo" className="link-fio pecas-catalogo">
+            Ver as medidas no catálogo técnico
+          </a>
         </Surgir>
       </div>
 

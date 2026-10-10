@@ -10,7 +10,7 @@
  *
  * e rode `npm run imagens`. O resultado vai para src/assets/hero,
  * src/assets/cenas e src/assets/oficina em WEBP. Se as pastas não existirem, crie-as.
- * Os vídeos do carrossel não passam por aqui: veja docs/IMAGENS.md.
+ * Os vídeos do carrossel não passam por aqui: veja o README (Imagens e vídeos).
  */
 import { mkdir, readdir } from 'node:fs/promises'
 import path from 'node:path'

@@ -3,6 +3,7 @@ import { mensagemPeca, mensagens } from '../lib/site'
 export const navegacao = [
   { rotulo: 'Linha sanitária', destino: '#linha-sanitaria' },
   { rotulo: 'Conexões', destino: '#conexoes' },
+  { rotulo: 'Catálogo', destino: '#catalogo' },
   { rotulo: 'Serviços', destino: '#servicos' },
   { rotulo: 'Oficina', destino: '#oficina' },
   { rotulo: 'Dúvidas', destino: '#duvidas' },
@@ -242,3 +243,61 @@ export const perguntas = [
       'O que você tiver: desenho, foto da peça, padrão de conexão, diâmetro, tipo de inox, quantidade e onde a peça vai ser usada. Quanto mais detalhe, mais rápido sai o orçamento.',
   },
 ] as const
+
+/**
+ * Catálogo técnico. As páginas são imagens em src/assets/catalogo, quatro por folha
+ * (2 x 2), na mesma ordem desta lista. Os índices do PDF original viraram o índice
+ * clicável abaixo; as páginas 12 e 13 de acessórios foram juntadas numa só.
+ */
+export const catalogo = {
+  paginas: [
+    'Capa',
+    'Conexões solda',
+    'Conexões Tri-Clamp',
+    'Conexões Tri-Clamp: curvas, tês e reduções',
+    'Uniões, porcas, tampões e anéis de vedação',
+    'Machos solda e expansão',
+    'Niples',
+    'Curvas roscadas',
+    'Tês e cruzeta roscados',
+    'Reduções roscadas',
+    'Adaptadores para mangueira',
+    'Visores e torneira de amostra',
+    'Acessórios',
+    'Linha industrial: cotovelos e tês',
+    'Linha industrial: tê de redução, cruzeta e uniões',
+    'Linha industrial: uniões e niple de redução',
+    'Linha industrial: niples, espigão e bujão',
+    'Linha industrial: conexão Y, tampão, bucha e luva',
+    'Linha industrial: luvas',
+  ],
+  indice: [
+    {
+      grupo: 'Padrão sanitário',
+      itens: [
+        { rotulo: 'Conexões solda', pagina: 1 },
+        { rotulo: 'Tri-Clamp (TC)', pagina: 2 },
+        { rotulo: 'Uniões RJT, SMS e DIN', pagina: 4 },
+        { rotulo: 'Machos', pagina: 5 },
+        { rotulo: 'Niples', pagina: 6 },
+        { rotulo: 'Curvas roscadas', pagina: 7 },
+        { rotulo: 'Tês e cruzeta roscados', pagina: 8 },
+        { rotulo: 'Reduções roscadas', pagina: 9 },
+        { rotulo: 'Adaptadores p/ mangueira', pagina: 10 },
+        { rotulo: 'Visores', pagina: 11 },
+        { rotulo: 'Acessórios', pagina: 12 },
+      ],
+    },
+    {
+      grupo: 'Industrial 150 LBS · rosca BSP ou NPT',
+      itens: [
+        { rotulo: 'Cotovelos e tês', pagina: 13 },
+        { rotulo: 'Cruzeta e uniões', pagina: 14 },
+        { rotulo: 'Niple de redução', pagina: 15 },
+        { rotulo: 'Niples, espigão e bujão', pagina: 16 },
+        { rotulo: 'Conexão Y, tampão e buchas', pagina: 17 },
+        { rotulo: 'Luvas', pagina: 18 },
+      ],
+    },
+  ],
+} as const
