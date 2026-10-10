@@ -81,11 +81,9 @@ export type Midia = {
  * Arquivo novo sem entrada aqui entra com legenda genérica em 3:4.
  */
 const fichaOficina: Record<string, { legenda: string; proporcao: number }> = {
-  'polimento-curva': { legenda: 'Polimento de curva sanitária na roda de pano', proporcao: 476 / 848 },
   'estoque-tes': { legenda: 'Tês e tubos de linha sanitária no estoque', proporcao: 3 / 4 },
   'lixa-faiscas': { legenda: 'Acabamento de curva de inox na lixadeira de cinta', proporcao: 476 / 848 },
   'estoque-conexoes': { legenda: 'Conexões Tri-Clamp, espigões e reduções no estoque', proporcao: 3 / 4 },
-  'bancada-curvas': { legenda: 'Curvas sanitárias presas na morsa para acabamento', proporcao: 476 / 848 },
   'curvas-polidas': { legenda: 'Curvas, uniões e flanges sanitários recém-polidos', proporcao: 3 / 4 },
   'curva-tri-clamp': { legenda: 'Curva Tri-Clamp com espigão', proporcao: 3 / 4 },
   'reducao-e-niple': { legenda: 'Redução concêntrica e niple Tri-Clamp', proporcao: 3 / 4 },
