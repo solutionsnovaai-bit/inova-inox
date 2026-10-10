@@ -64,15 +64,28 @@ export function ItemOficina({ midia }: PropsItem) {
 
 /**
  * Carrossel da oficina: vídeos e fotos reais, rodando sozinhos.
- * Lê tudo o que estiver em src/assets/oficina. Vídeos na faixa de cima,
- * fotos na de baixo, cada faixa para um lado.
+ * Lê tudo o que estiver em src/assets/oficina. Vídeos na faixa de cima
+ * (intercalados com fotos quando são poucos), fotos na de baixo, cada faixa para um lado.
  */
 export function Galeria() {
   if (oficina.length === 0) return null
 
   const videos = oficina.filter((m) => m.tipo === 'video')
   const fotos = oficina.filter((m) => m.tipo === 'foto')
-  const faixas = [videos, fotos].filter((lista) => lista.length > 0)
+
+  // Com poucos vídeos, a faixa de cima intercala vídeo e foto para não ficar repetitiva.
+  let cima: Midia[] = videos
+  let baixo: Midia[] = fotos
+  if (videos.length > 0 && videos.length < 4) {
+    const fotosCima = fotos.slice(0, Math.floor(fotos.length / 2))
+    baixo = fotos.slice(fotosCima.length)
+    cima = []
+    for (let i = 0; i < Math.max(videos.length, fotosCima.length); i++) {
+      if (videos[i]) cima.push(videos[i])
+      if (fotosCima[i]) cima.push(fotosCima[i])
+    }
+  }
+  const faixas = [cima, baixo].filter((lista) => lista.length > 0)
 
   return (
     <section id="oficina" aria-label="Vídeos e fotos da oficina" className="secao secao--sangra bg-preto">
@@ -80,8 +93,8 @@ export function Galeria() {
         <Titulo className="titulo-secao text-white" linhas={['Direto da', 'nossa oficina.']} />
         <Surgir ordem={1}>
           <p className="texto-apoio">
-            Polimento, acabamento e o estoque de conexões da linha sanitária. Tudo gravado aqui, na
-            bancada da Inova Inox.
+            O estoque de conexões da linha sanitária e as peças recém-polidas. Tudo gravado aqui, na
+            oficina da Inova Inox.
           </p>
         </Surgir>
       </div>

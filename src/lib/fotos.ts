@@ -82,7 +82,6 @@ export type Midia = {
  */
 const fichaOficina: Record<string, { legenda: string; proporcao: number }> = {
   'estoque-tes': { legenda: 'Tês e tubos de linha sanitária no estoque', proporcao: 3 / 4 },
-  'lixa-faiscas': { legenda: 'Acabamento de curva de inox na lixadeira de cinta', proporcao: 476 / 848 },
   'estoque-conexoes': { legenda: 'Conexões Tri-Clamp, espigões e reduções no estoque', proporcao: 3 / 4 },
   'curvas-polidas': { legenda: 'Curvas, uniões e flanges sanitários recém-polidos', proporcao: 3 / 4 },
   'curva-tri-clamp': { legenda: 'Curva Tri-Clamp com espigão', proporcao: 3 / 4 },
