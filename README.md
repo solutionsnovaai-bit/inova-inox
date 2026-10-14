@@ -124,6 +124,9 @@ O que foi feito a partir do PDF original:
   painel de distribuição de fluxo, manômetro, termômetro e chave para porca.
 - As páginas 12 e 13 de acessórios viraram uma só (spray-ball, abraçadeiras e luva).
 - As três páginas de índice viraram o índice clicável ao lado do livro.
+- O cabeçalho, o rodapé e a capa do PDF original saíram. Cada página ganhou um cabeçalho
+  da Inova Inox (logotipo, assunto da página, WhatsApp e telefone do site) e um rodapé com o
+  número da página, e a capa foi refeita com o logotipo e uma foto real das peças.
 
 Os títulos de cada página e o índice estão em `src/data/conteudo.ts` (`catalogo`).
 Para trocar uma página, refaça a folha dela mantendo a mesma grade e o mesmo tamanho.
