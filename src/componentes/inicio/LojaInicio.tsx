@@ -3,14 +3,13 @@ import { LayoutGroup, motion } from 'motion/react'
 import { ShoppingBag } from 'lucide-react'
 import { useEstoque } from '../../loja/estoque'
 import { useSacola } from '../../loja/sacola'
-import { linkLoja } from '../../loja/rotas'
+import { linkLoja, navegar } from '../../loja/rotas'
 import type { Produto } from '../../loja/tipos'
 import { ease } from '../../lib/movimento'
-import { Revelar, Titulo } from '../ui/Revelar'
 import { Botao } from '../ui/Pecas'
 import { CartaoProduto } from '../ui/Peca'
 
-const QTD = 12
+const QTD = 16
 
 /** Coloca a peça na sacola com a primeira medida, inox 304 e as primeiras opções. */
 function BotaoAdicionar({ p }: { p: Produto }) {
@@ -41,12 +40,9 @@ export function LojaInicio() {
 
   return <section id="loja" className="loja-inicio" aria-labelledby="loja-inicio-titulo">
     <div className="conteiner">
-      <div className="secao-cabeca">
-        <div>
-          <Revelar><p className="selo-texto">Loja · {produtos.length} peças</p></Revelar>
-          <Titulo id="loja-inicio-titulo" linhas={['Compre']} destaque="direto aqui." />
-        </div>
-        <Revelar delay={0.1}><p className="lead">Escolha a peça, coloque na sacola e feche o pedido pelo WhatsApp. Medida e aço você troca na página da peça.</p></Revelar>
+      <div className="loja-inicio-cabeca">
+        <h2 id="loja-inicio-titulo">Loja <em>Inova Inox</em><small>{produtos.length} peças · inox 304 e 316</small></h2>
+        <a className="link-seta" href={linkLoja(linha)} onClick={(e) => { e.preventDefault(); navegar(linkLoja(linha)) }}>Ver catálogo completo</a>
       </div>
 
       <LayoutGroup id="loja-inicio-abas">

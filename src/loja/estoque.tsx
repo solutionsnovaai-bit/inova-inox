@@ -15,7 +15,7 @@ type Status = 'base' | 'carregando' | 'planilha' | 'erro'
 const CACHE = 'inova-planilha-v1'
 const ESPERA_MS = 9000
 
-const deBase = (b: ProdutoBase, destaque: boolean): Produto => ({
+const deBase = (b: ProdutoBase, destaque: boolean, exemplo: number | null = null): Produto => ({
   slug: b.slug,
   nome: b.nome,
   categoria: b.categoria,
@@ -27,11 +27,14 @@ const deBase = (b: ProdutoBase, destaque: boolean): Produto => ({
   fotos: b.fotos,
   fotosLoja: [],
   texto: b.texto,
-  variantes: b.medidas.map((medida) => ({ medida, preco304: null, preco316: null, unidade: 'un', fotos: [] })),
+  variantes: b.medidas.map((medida) => ({ medida, preco304: exemplo, preco316: exemplo, unidade: 'un', fotos: [] })),
   destaque,
 })
 
 const BASE: Produto[] = PRODUTOS_BASE.map((b) => deBase(b, DESTAQUES_BASE.includes(b.slug)))
+/** Sem planilha ligada: preço de exemplo em tudo, só para visualizar a loja. */
+const PRECO_EXEMPLO = 300
+const BASE_EXEMPLO: Produto[] = PRODUTOS_BASE.map((b) => deBase(b, DESTAQUES_BASE.includes(b.slug), PRECO_EXEMPLO))
 const BASE_POR_NOME = new Map(PRODUTOS_BASE.map((b) => [normalizar(b.nome), b]))
 
 /* ---------- leitura da planilha do Google ---------- */
@@ -234,7 +237,7 @@ export function EstoqueProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const valor = useMemo<Estoque>(() => {
-    const produtos = (csv && daPlanilha(csv)) || BASE
+    const produtos = (csv && daPlanilha(csv)) || (planilhaLink ? BASE : BASE_EXEMPLO)
     const mapa = new Map(produtos.map((p) => [p.slug, p]))
     const lista: Categoria[] = [...CATEGORIAS]
     if (produtos.some((p) => p.categoria === 'outros')) lista.push({ id: 'outros', nome: 'Outras peças', texto: 'Peças avulsas da loja.' })

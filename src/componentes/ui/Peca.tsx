@@ -54,7 +54,7 @@ export function PrecoResumo({ produto }: { produto: Produto }) {
   const p = menorPreco(produto)
   if (p === null) return <span className="preco is-consulta">Sob consulta</span>
   const varia = produto.variantes.length > 1 || (produto.material && produto.variantes.some((v) => v.preco316 !== null && v.preco304 !== null && v.preco316 !== v.preco304))
-  return <span className="preco">{varia && <small>a partir de</small>}<strong>{brl(p)}</strong></span>
+  return <span className="preco">{status === 'base' ? <small>ex.</small> : varia && <small>a partir de</small>}<strong>{brl(p)}</strong></span>
 }
 
 export function CartaoProduto({ produto, indice = 0 }: { produto: Produto; indice?: number }) {
