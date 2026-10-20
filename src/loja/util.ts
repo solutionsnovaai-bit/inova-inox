@@ -53,4 +53,24 @@ export function resumoMedidas(p: Produto) {
   return `${m[0]} a ${m[m.length - 1]} · ${m.length} medidas`
 }
 
+/** Uma célula pode ter um ou mais links de foto, separados por espaço, vírgula ou quebra de linha. */
+export const linksDeFoto = (celula: string) => String(celula ?? '').split(/[\s,;]+/).filter((x) => /^https?:\/\//i.test(x))
+
+/**
+  Endereços para mostrar uma foto vinda da planilha, em ordem de tentativa.
+  Link de compartilhar do Google Drive vira link direto de imagem (com uma reserva);
+  link do Dropbox vira o arquivo cru; qualquer outro link de imagem passa como está.
+*/
+export function enderecosImagem(link: string): string[] {
+  const t = link.trim()
+  if (/(?:drive|docs)\.google\.com/i.test(t)) {
+    const id = (/\/d\/([\w-]{20,})/.exec(t) || /[?&]id=([\w-]{20,})/.exec(t) || [])[1]
+    if (id) return [`https://drive.google.com/thumbnail?id=${id}&sz=w1600`, `https://lh3.googleusercontent.com/d/${id}=w1600`]
+  }
+  if (/dropbox\.com/i.test(t)) {
+    try { const u = new URL(t); u.searchParams.delete('dl'); u.searchParams.set('raw', '1'); return [u.toString()] } catch { /* link quebrado */ }
+  }
+  return [t]
+}
+
 export const plural = (n: number, um: string, varios: string) => `${n} ${n === 1 ? um : varios}`

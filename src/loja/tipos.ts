@@ -26,6 +26,8 @@ export type Variante = {
   preco304: number | null
   preco316: number | null
   unidade: string
+  /** Fotos desta medida, vindas da planilha (links). */
+  fotos: string[]
 }
 
 /** Peça como a loja mostra: base do catálogo + o que a planilha diz. */
@@ -39,8 +41,8 @@ export type Produto = {
   pagina: number | null
   desenho: [number, number, number] | null
   fotos: string[]
-  /** Link de foto vindo da planilha (peças novas). */
-  fotoLink: string
+  /** Fotos da peça vindas da planilha (links, na ordem da planilha). A primeira vira a imagem principal. */
+  fotosLoja: string[]
   texto: string
   variantes: Variante[]
   destaque: boolean

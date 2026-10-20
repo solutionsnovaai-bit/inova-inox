@@ -1,11 +1,11 @@
-import type { PointerEvent } from 'react'
+import { useState, type PointerEvent, type ReactNode } from 'react'
 import { ArrowUpRight } from 'lucide-react'
 import { FOTOS, PRANCHAS } from '../../lib/midia'
 import { PRANCHA_COLUNAS, PRODUTOS_BASE } from '../../loja/produtos'
 import { useEstoque } from '../../loja/estoque'
 import { Link, linkProduto } from '../../loja/rotas'
 import type { Produto } from '../../loja/tipos'
-import { brl, menorPreco, resumoMedidas } from '../../loja/util'
+import { brl, enderecosImagem, menorPreco, resumoMedidas } from '../../loja/util'
 import { inclinar, soltar } from './Pecas'
 
 /** Desenho técnico da peça, recortado da prancha (src/assets/pecas). */
@@ -20,13 +20,31 @@ export function Desenho({ desenho, alt, prioridade = false }: { desenho: [number
 /** Desenho de uma peça parecida da mesma linha, para peças novas sem foto. */
 const desenhoDaLinha = (categoria: string) => PRODUTOS_BASE.find((b) => b.categoria === categoria)?.desenho ?? PRODUTOS_BASE[0].desenho
 
-/** Imagem principal do cartão: desenho do catálogo; peça nova usa a foto da planilha ou o desenho da linha. */
-export function ImagemPeca({ produto, prioridade = false }: { produto: Produto; prioridade?: boolean }) {
-  if (produto.desenho) return <Desenho desenho={produto.desenho} alt={`Desenho técnico: ${produto.nome}`} prioridade={prioridade} />
-  if (produto.fotoLink) return <span className="desenho is-foto"><img src={produto.fotoLink} alt={produto.nome} loading="lazy" decoding="async" referrerPolicy="no-referrer" /></span>
-  const foto = produto.fotos[0] ? FOTOS[produto.fotos[0]] : undefined
-  if (foto) return <span className="desenho is-foto"><img src={foto.src} alt={foto.alt} loading="lazy" decoding="async" /></span>
-  return <Desenho desenho={desenhoDaLinha(produto.categoria)} alt={produto.nome} prioridade={prioridade} />
+/**
+  Foto vinda da planilha (Google Drive, Dropbox ou link direto). Se o primeiro endereço falhar,
+  tenta a reserva; se nada abrir, mostra o que vier em `reserva` (o desenho da peça).
+*/
+export function FotoLoja({ link, alt, prioridade = false, reserva = null }: { link: string; alt: string; prioridade?: boolean; reserva?: ReactNode }) {
+  const enderecos = enderecosImagem(link)
+  const [tentativa, setTentativa] = useState(0)
+  if (tentativa >= enderecos.length) return <>{reserva}</>
+  return <span className="desenho is-foto-loja">
+    <img key={enderecos[tentativa]} src={enderecos[tentativa]} alt={alt} loading={prioridade ? 'eager' : 'lazy'} decoding="async"
+      referrerPolicy="no-referrer" draggable={false} onError={() => setTentativa((t) => t + 1)} />
+  </span>
+}
+
+/** Imagem principal da peça: a foto da planilha quando existe; senão, o desenho do catálogo; peça nova sem nada usa o desenho da linha. */
+export function ImagemPeca({ produto, prioridade = false, foto }: { produto: Produto; prioridade?: boolean; foto?: string }) {
+  const desenho = produto.desenho
+    ? <Desenho desenho={produto.desenho} alt={`Desenho técnico: ${produto.nome}`} prioridade={prioridade} />
+    : <Desenho desenho={desenhoDaLinha(produto.categoria)} alt={produto.nome} prioridade={prioridade} />
+  const link = foto ?? produto.fotosLoja[0]
+  if (link) return <FotoLoja link={link} alt={produto.nome} prioridade={prioridade} reserva={desenho} />
+  if (produto.desenho) return desenho
+  const oficina = produto.fotos[0] ? FOTOS[produto.fotos[0]] : undefined
+  if (oficina) return <span className="desenho is-foto"><img src={oficina.src} alt={oficina.alt} loading="lazy" decoding="async" /></span>
+  return desenho
 }
 
 /** Preço do cartão: "a partir de", sob consulta ou um traço piscando enquanto a planilha chega. */

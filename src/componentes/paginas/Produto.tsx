@@ -11,14 +11,15 @@ import { brl, precoDe } from '../../loja/util'
 import { ease, rolarPara, useMovimento } from '../../lib/movimento'
 import { Lupa, Revelar, Titulo } from '../ui/Revelar'
 import { Botao, BrandIcon, Faisca } from '../ui/Pecas'
-import { ImagemPeca } from '../ui/Peca'
+import { Desenho, FotoLoja, ImagemPeca } from '../ui/Peca'
 import { Vitrine } from '../inicio/Vitrine'
 
-type Midia = { id: string; tipo: 'desenho' | 'foto' | 'ficha'; src?: string; alt: string }
+type Midia = { id: string; tipo: 'loja' | 'desenho' | 'foto' | 'ficha'; src?: string; alt: string }
 
+/** Fotos da planilha primeiro, depois o desenho do catálogo, as fotos da oficina e a ficha técnica. */
 function midiasDe(p: TProduto): Midia[] {
-  const l: Midia[] = [{ id: 'desenho', tipo: 'desenho', alt: `Desenho técnico: ${p.nome}` }]
-  if (p.fotoLink) l.push({ id: 'link', tipo: 'foto', src: p.fotoLink, alt: p.nome })
+  const l: Midia[] = p.fotosLoja.map((link, i) => ({ id: `loja-${i}`, tipo: 'loja', src: link, alt: p.nome }))
+  if (p.desenho || l.length === 0) l.push({ id: 'desenho', tipo: 'desenho', alt: `Desenho técnico: ${p.nome}` })
   p.fotos.forEach((k) => { const f = FOTOS[k]; if (f) l.push({ id: k, tipo: 'foto', src: f.src, alt: f.alt }) })
   if (p.pagina !== null) l.push({ id: 'ficha', tipo: 'ficha', alt: `Catálogo técnico, página ${p.pagina + 1}` })
   return l
@@ -56,7 +57,7 @@ export default function Produto({ slug }: { slug: string }) {
   const [aco, setAco] = useState<Aco>('304')
   const [opcoes, setOpcoes] = useState<Record<string, string>>({})
   const [qtd, setQtd] = useState(1)
-  const [midia, setMidia] = useState('desenho')
+  const [midia, setMidia] = useState('')
   const [aviso, setAviso] = useState(0)
   const [voo, setVoo] = useState<{ x0: number; y0: number; x1: number; y1: number; k: number } | null>(null)
   const botaoAdd = useRef<HTMLDivElement>(null)
@@ -67,7 +68,7 @@ export default function Produto({ slug }: { slug: string }) {
     setMedida((m) => (p.variantes.some((v) => v.medida === m) ? m : p.variantes[0]?.medida ?? ''))
     setOpcoes((o) => Object.fromEntries(p.opcoes.map((op) => [op.nome, op.valores.includes(o[op.nome]) ? o[op.nome] : op.valores[0]])))
   }, [p])
-  useEffect(() => { setMidia('desenho'); setQtd(1) }, [slug])
+  useEffect(() => { setMidia(''); setQtd(1) }, [slug])
   useEffect(() => { if (!aviso) return; const t = window.setTimeout(() => setAviso(0), 3800); return () => window.clearTimeout(t) }, [aviso])
 
   const relacionados = useMemo(() => {
@@ -95,6 +96,11 @@ export default function Produto({ slug }: { slug: string }) {
   const midias = midiasDe(p)
   const atual = midias.find((m) => m.id === midia) ?? midias[0]
   const descricao = [variante?.medida, acoEscolhido ? `inox ${acoEscolhido}` : '', ...Object.entries(opcoes).map(([k, v]) => `${k.toLowerCase()} ${v}`)].filter(Boolean).join(', ')
+  const escolherMedida = (m: string) => {
+    setMedida(m)
+    const f = p.variantes.find((v) => v.medida === m)?.fotos[0]
+    if (f) setMidia(`loja-${p.fotosLoja.indexOf(f)}`)
+  }
   const textoPedido = `Olá! Vim pelo site da Inova Inox e quero pedir: ${p.nome} (${descricao}), ${qtd} ${variante?.unidade || 'un'}.`
   const temTabela = p.variantes.length > 1 || p.material
 
@@ -118,21 +124,23 @@ export default function Produto({ slug }: { slug: string }) {
 
         <div className="produto-grade">
           <div className="produto-galeria">
-            <div className={`produto-palco is-${atual.tipo}`} data-cursor={atual.tipo === 'foto' ? '' : 'ampliar'}>
+            <div className={`produto-palco is-${atual?.tipo ?? 'desenho'}`} data-cursor={atual?.tipo === 'foto' ? '' : 'ampliar'}>
               <AnimatePresence mode="popLayout" initial={false}>
-                <motion.div key={atual.id} className="produto-palco-item" initial={{ opacity: 0, scale: 0.96, clipPath: 'inset(0% 0% 100% 0%)' }}
+                <motion.div key={atual?.id ?? 'vazio'} className="produto-palco-item" initial={{ opacity: 0, scale: 0.96, clipPath: 'inset(0% 0% 100% 0%)' }}
                   animate={{ opacity: 1, scale: 1, clipPath: 'inset(0% 0% 0% 0%)' }} exit={{ opacity: 0 }} transition={{ duration: 0.8, ease: ease.quint }}>
-                  {atual.tipo === 'desenho' && <Lupa className="produto-desenho" zoom={2}><ImagemPeca produto={p} prioridade /></Lupa>}
-                  {atual.tipo === 'foto' && <Lupa className="produto-foto"><img src={atual.src} alt={atual.alt} decoding="async" draggable={false} /></Lupa>}
-                  {atual.tipo === 'ficha' && p.pagina !== null && <Ficha pagina={p.pagina} />}
+                  {atual?.tipo === 'loja' && <Lupa className="produto-desenho" zoom={2}><FotoLoja link={atual.src!} alt={atual.alt} prioridade /></Lupa>}
+                  {atual?.tipo === 'desenho' && <Lupa className="produto-desenho" zoom={2}>{p.desenho ? <Desenho desenho={p.desenho} alt={atual.alt} prioridade /> : <ImagemPeca produto={p} prioridade />}</Lupa>}
+                  {atual?.tipo === 'foto' && <Lupa className="produto-foto"><img src={atual.src} alt={atual.alt} decoding="async" draggable={false} /></Lupa>}
+                  {atual?.tipo === 'ficha' && p.pagina !== null && <Ficha pagina={p.pagina} />}
                 </motion.div>
               </AnimatePresence>
-              <span className="produto-palco-legenda">{atual.tipo === 'desenho' ? 'Desenho do catálogo técnico' : atual.tipo === 'ficha' ? `Ficha técnica · página ${(p.pagina ?? 0) + 1}` : 'Foto da oficina'}</span>
+              {atual && <span className="produto-palco-legenda">{{ loja: 'Foto da peça', desenho: 'Desenho do catálogo técnico', ficha: `Ficha técnica · página ${(p.pagina ?? 0) + 1}`, foto: 'Foto da oficina' }[atual.tipo]}</span>}
             </div>
             {midias.length > 1 && <div className="produto-miniaturas" role="tablist" aria-label="Imagens da peça">
-              {midias.map((m) => <button key={m.id} type="button" role="tab" aria-selected={m.id === atual.id} className={m.id === atual.id ? 'is-ativa' : ''}
+              {midias.map((m) => <button key={m.id} type="button" role="tab" aria-selected={m.id === atual?.id} className={m.id === atual?.id ? 'is-ativa' : ''}
                 onClick={() => setMidia(m.id)} aria-label={m.alt}>
-                {m.tipo === 'desenho' && <ImagemPeca produto={p} />}
+                {m.tipo === 'loja' && <FotoLoja link={m.src!} alt="" />}
+                {m.tipo === 'desenho' && (p.desenho ? <Desenho desenho={p.desenho} alt="" /> : <ImagemPeca produto={p} />)}
                 {m.tipo === 'foto' && <img src={m.src} alt="" loading="lazy" />}
                 {m.tipo === 'ficha' && p.pagina !== null && <Ficha pagina={p.pagina} lupa={false} />}
               </button>)}
@@ -145,7 +153,7 @@ export default function Produto({ slug }: { slug: string }) {
             {p.texto && <Revelar delay={0.1}><p className="produto-texto">{p.texto}</p></Revelar>}
 
             <div className="produto-escolhas">
-              {p.variantes.length > 1 && <Seletor id={`medida-${p.slug}`} nome="Medida" valores={p.variantes.map((v) => v.medida)} atual={variante?.medida ?? ''} escolher={setMedida} />}
+              {p.variantes.length > 1 && <Seletor id={`medida-${p.slug}`} nome="Medida" valores={p.variantes.map((v) => v.medida)} atual={variante?.medida ?? ''} escolher={escolherMedida} />}
               {p.variantes.length === 1 && variante?.medida && <p className="seletor-unica">Medida <b>{variante.medida}</b></p>}
               {p.material && <Seletor id={`aco-${p.slug}`} nome="Aço" valores={['304', '316']} atual={aco} escolher={(v) => setAco(v as Aco)} />}
               {p.opcoes.map((op) => <Seletor key={op.nome} id={`op-${p.slug}-${op.nome}`} nome={op.nome} valores={op.valores} atual={opcoes[op.nome] ?? op.valores[0]}
@@ -204,7 +212,7 @@ export default function Produto({ slug }: { slug: string }) {
                 <td>{status === 'carregando' ? '…' : v.preco304 !== null ? brl(v.preco304) : 'Consulta'}</td>
                 {p.material && <td>{status === 'carregando' ? '…' : v.preco316 !== null ? brl(v.preco316) : 'Consulta'}</td>}
                 <td>{v.unidade || 'un'}</td>
-                <td><button type="button" onClick={() => { setMedida(v.medida); rolarPara(0, reduzido) }} aria-label={`Escolher ${v.medida}`}>
+                <td><button type="button" onClick={() => { escolherMedida(v.medida); rolarPara(0, reduzido) }} aria-label={`Escolher ${v.medida}`}>
                   {v.medida === variante?.medida ? <Check /> : <Plus />}
                 </button></td>
               </tr>)}

@@ -70,6 +70,7 @@
   background-color: #f3f5f6; background-image: radial-gradient(70% 60% at 50% 42%, #fff, transparent 75%), var(--tex-escovado-escuro); background-size: auto, 640px 320px;
   box-shadow: 0 60px 120px -60px rgb(0 0 0 / .8); }
 .produto-palco.is-foto { background: var(--chapa-3); }
+.produto-palco.is-loja .produto-desenho { width: 88%; }
 .produto-palco-item { position: absolute; inset: 0; display: grid; place-items: center; }
 .produto-desenho { display: grid; place-items: center; width: 78%; height: auto; }
 .produto-desenho .desenho { width: 100%; mix-blend-mode: multiply; }

@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import { planilhaLink } from './config'
 import { CATEGORIAS, DESTAQUES_BASE, PRODUTOS_BASE } from './produtos'
 import type { Categoria, Produto, ProdutoBase } from './tipos'
-import { lerPreco, normalizar, slugificar } from './util'
+import { lerPreco, linksDeFoto, normalizar, slugificar } from './util'
 
 /*
   Estoque da loja: começa com a base do catálogo técnico (tudo sob consulta) e,
@@ -25,9 +25,9 @@ const deBase = (b: ProdutoBase, destaque: boolean): Produto => ({
   pagina: b.pagina,
   desenho: b.desenho,
   fotos: b.fotos,
-  fotoLink: '',
+  fotosLoja: [],
   texto: b.texto,
-  variantes: b.medidas.map((medida) => ({ medida, preco304: null, preco316: null, unidade: 'un' })),
+  variantes: b.medidas.map((medida) => ({ medida, preco304: null, preco316: null, unidade: 'un', fotos: [] })),
   destaque,
 })
 
@@ -43,7 +43,9 @@ function fontes(link: string) {
   if (!id) return []
   const gid = (/[#&?]gid=(\d+)/.exec(link) || [])[1]
   const raiz = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&headers=1`
-  return [`${raiz}&sheet=${encodeURIComponent('Produtos')}`, ...(gid ? [`${raiz}&gid=${gid}`] : []), raiz]
+  const aba = `${raiz}&sheet=${encodeURIComponent('Produtos')}`
+  /* A aba Produtos tem a faixa com o logotipo nas linhas 1 a 3; a tabela começa na linha 4. */
+  return [`${aba}&range=A4:J5000`, aba, ...(gid ? [`${raiz}&gid=${gid}`] : []), raiz]
 }
 
 function lerCsv(t: string) {
@@ -110,13 +112,14 @@ function categoriaDe(texto: string) {
 /** Monta a loja a partir do CSV da aba Produtos. Devolve null se a aba não tiver a coluna Produto. */
 function daPlanilha(csv: string): Produto[] | null {
   const linhas = lerCsv(csv).filter((l) => l.some((c) => c.trim()))
-  if (linhas.length < 2) return null
-  const c = colunas(linhas[0])
-  if (!c) return null
+  /* O cabeçalho é a primeira linha com a coluna Produto (pode haver linhas de título acima dela). */
+  const ini = linhas.slice(0, 8).findIndex((l) => colunas(l) !== null)
+  if (ini < 0 || linhas.length < ini + 2) return null
+  const c = colunas(linhas[ini])!
   const pega = (l: string[], i: number) => (i >= 0 ? String(l[i] ?? '').trim() : '')
 
   const grupos = new Map<string, string[][]>()
-  for (const l of linhas.slice(1)) {
+  for (const l of linhas.slice(ini + 1)) {
     const nome = pega(l, c.produto)
     if (!nome) continue
     const chave = normalizar(nome)
@@ -137,6 +140,7 @@ function daPlanilha(csv: string): Produto[] | null {
         preco304: lerPreco(pega(l, c.p304)),
         preco316: lerPreco(pega(l, c.p316)),
         unidade: pega(l, c.unidade) || 'un',
+        fotos: linksDeFoto(pega(l, c.foto)),
       }))
       .filter((v) => (vistas.has(v.medida) ? false : (vistas.add(v.medida), true)))
     if (variantes.length === 0) continue
@@ -145,16 +149,16 @@ function daPlanilha(csv: string): Produto[] | null {
     while (usados.has(slug)) slug += '-2'
     usados.add(slug)
     const descricao = ls.map((l) => pega(l, c.descricao)).find(Boolean) ?? ''
-    const foto = ls.map((l) => pega(l, c.foto)).find((f) => /^https?:\/\//i.test(f)) ?? ''
+    const fotosLoja = [...new Set(ls.filter((l) => !nao(pega(l, c.mostrar))).flatMap((l) => linksDeFoto(pega(l, c.foto))))]
     produtos.push({
       ...(base ? deBase(base, false) : {
         slug, nome, categoria: categoriaDe(pega(ls[0], c.categoria)), grupo: 'Outras peças', opcoes: [], material: true,
-        pagina: null, desenho: null, fotos: [], fotoLink: '', texto: '', variantes: [], destaque: false,
+        pagina: null, desenho: null, fotos: [], fotosLoja: [], texto: '', variantes: [], destaque: false,
       }),
       slug,
       nome,
       texto: descricao || base?.texto || '',
-      fotoLink: foto,
+      fotosLoja,
       variantes,
       destaque: ls.some((l) => sim(pega(l, c.destaque))),
     })

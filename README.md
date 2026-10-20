@@ -23,9 +23,9 @@ Na Vercel: framework Vite, comando `npm run build`, pasta `dist`. O `vercel.json
 | `/produto/<peça>` | Peça: desenho, fotos, ficha do catálogo, medida, aço, padrão, quantidade e preço |
 | `/catalogo` | Catálogo técnico para folhear (`?pagina=5` abre na página 5) |
 
-## Preços pela planilha do Google
+## Preços e fotos pela planilha do Google
 
-A planilha modelo está em `planilha/inova-inox-loja.xlsx`, já com as 96 peças do catálogo técnico, uma linha por medida.
+A planilha modelo está em `planilha/inova-inox-loja.xlsx`, com o logotipo no topo e as 96 peças do catálogo técnico, uma linha por medida. A tabela começa na linha 4.
 
 1. No Google Drive, **Novo > Upload de arquivo** com o `.xlsx`. Abra com o Google Planilhas e use **Arquivo > Salvar como Planilhas Google**.
 2. Em **Arquivo > Configurações**, deixe a localidade como **Brasil**.
@@ -38,8 +38,9 @@ Como a planilha funciona (está explicado também na aba **Como usar**):
 - **Mostrar no site**: `Não` esconde aquela medida. Peça sem nenhuma medida visível sai da loja.
 - **Destaque**: `Sim` em qualquer linha coloca a peça na vitrine do início.
 - **Unidade**: como a peça é vendida (un, m, barra...).
-- **Peça nova**: linhas com um nome de produto novo viram uma peça nova, na categoria escrita na coluna Categoria. **Foto (link)** e **Descrição** são opcionais.
-- Não mude os nomes das colunas da primeira linha.
+- **Foto (link do Google Drive)**: link de compartilhar de uma foto numa pasta do Drive aberta para "Qualquer pessoa com o link". A primeira foto da peça vira a imagem principal na loja (no lugar do desenho); foto na linha de uma medida troca quando o cliente escolhe aquela medida; vários links na mesma célula, separados por espaço, viram várias fotos. Também aceita link direto de imagem e link do Dropbox. Se o link não abrir, o site mostra o desenho do catálogo.
+- **Peça nova**: linhas com um nome de produto novo viram uma peça nova, na categoria escrita na coluna Categoria. **Descrição** é opcional (em peça existente, troca o texto do site).
+- Não apague a faixa do logotipo (linhas 1 a 3) nem mude os nomes das colunas da linha 4.
 
 A loja lê a planilha toda vez que a página abre e guarda a última leitura no navegador. Sem planilha ligada, mostra o catálogo inteiro sob consulta.
 
