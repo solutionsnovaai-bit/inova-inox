@@ -1,0 +1,5 @@
+@import 'tailwindcss/preflight.css';
+@import './base.css';
+@import './layout.css';
+@import './inicio.css';
+@import './loja.css';

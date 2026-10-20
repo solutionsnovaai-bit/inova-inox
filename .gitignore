@@ -1,4 +1,5 @@
 node_modules
 dist
-imagens-brutas
 .DS_Store
+*.log
+*.tsbuildinfo
