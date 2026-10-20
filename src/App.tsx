@@ -9,7 +9,8 @@ import { Loja } from './componentes/Loja'
 import { ModalPeca } from './componentes/ModalPeca'
 import { SacolaGaveta } from './componentes/SacolaGaveta'
 import { Catalogo } from './componentes/Catalogo'
-import { BalaoWhats, Duvidas, Loader, Rodape, Servicos } from './componentes/Secoes'
+import { BalaoWhats, Duvidas, Rodape, Servicos } from './componentes/Secoes'
+import { Abertura } from './componentes/Abertura'
 import { useRevelar } from './componentes/ui'
 
 const AVISOS: Record<string, { titulo: string; texto: string }> = {
@@ -43,7 +44,7 @@ function Site() {
   useRevelar()
 
   return <>
-    <Loader />
+    <Abertura />
     <Topo />
     <main>
       <Hero />

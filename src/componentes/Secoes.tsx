@@ -95,20 +95,3 @@ export function BalaoWhats() {
     <span className="balao-whats-texto">Fale com a gente</span>
   </a>
 }
-
-/** Abertura curta: o logotipo aparece com um brilho e a tela se abre. */
-export function Loader() {
-  const [saindo, setSaindo] = useState(false)
-  const [fim, setFim] = useState(false)
-  useEffect(() => {
-    const t1 = window.setTimeout(() => setSaindo(true), 1400)
-    const t2 = window.setTimeout(() => setFim(true), 2100)
-    return () => { clearTimeout(t1); clearTimeout(t2) }
-  }, [])
-  if (fim) return null
-  return <div className={`loader ${saindo ? 'is-saindo' : ''}`} aria-hidden="true">
-    <span className="loader-luz" />
-    <img src={logo.completo} alt="" />
-    <i className="loader-barra"><b /></i>
-  </div>
-}
