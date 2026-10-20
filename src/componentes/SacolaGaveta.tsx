@@ -1,148 +1,132 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
-import { AnimatePresence, motion } from 'motion/react'
-import { ArrowUpRight, ChevronDown, Minus, Plus, Trash2, X } from 'lucide-react'
-import { waLink } from '../loja/config'
-import { useEstoque } from '../loja/estoque'
-import { Link, linkLoja, linkProduto } from '../loja/rotas'
-import { descricaoItem, linhasDoPedido, mensagemPedido, resumoPedido, useSacola, type DadosPedido } from '../loja/sacola'
-import { brl, plural } from '../loja/util'
-import { ease, useTrava } from '../lib/movimento'
-import { BrandIcon, Faisca } from './ui/Pecas'
-import { ImagemPeca } from './ui/Peca'
+import { useEffect, type FormEvent } from 'react'
+import { Loader2, Lock, Minus, Plus, Truck, User, X } from 'lucide-react'
+import { SITE } from '../loja/ajustes.js'
+import { descricaoItem, useSacola } from '../loja/sacola'
+import { brl } from '../loja/util'
+import { IconeWhats, ImagemPeca } from './ui'
+import { linkWhats } from './Topo'
 
-const DADOS = 'inova-dados-pedido-v1'
-const vazio: DadosPedido = { nome: '', empresa: '', cep: '', obs: '' }
-
-function lerDados(): DadosPedido {
-  try { return { ...vazio, ...JSON.parse(localStorage.getItem(DADOS) ?? '{}') } } catch { return vazio }
-}
-
-/** Sacola lateral: peças, quantidades, conta e o pedido montado para o WhatsApp. */
+/** Sacola lateral, no molde da loja de velas: itens, frete (Melhor Envio), dados de entrega e pagamento. */
 export function SacolaGaveta() {
-  const { itens, aberta, fechar, alterar, remover, limpar } = useSacola()
-  const { porSlug, status } = useEstoque()
-  const [dados, setDados] = useState<DadosPedido>(lerDados)
-  const [verDados, setVerDados] = useState(false)
-  const [enviado, setEnviado] = useState(false)
-  const painel = useRef<HTMLDivElement>(null)
-  useTrava(aberta)
-
-  const linhas = useMemo(() => linhasDoPedido(itens, porSlug), [itens, porSlug])
-  const r = resumoPedido(linhas)
+  const s = useSacola()
+  const { aberta, fechar } = s
 
   useEffect(() => {
-    if (!aberta) { setEnviado(false); return }
-    const anterior = document.activeElement as HTMLElement | null
-    painel.current?.querySelector<HTMLElement>('.sacola-fechar')?.focus()
-    const tecla = (e: KeyboardEvent) => { if (e.key === 'Escape') fechar() }
-    document.addEventListener('keydown', tecla)
-    return () => { document.removeEventListener('keydown', tecla); anterior?.focus?.() }
+    if (!aberta) return
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') fechar() }
+    document.addEventListener('keydown', esc)
+    document.body.classList.add('travado')
+    return () => { document.removeEventListener('keydown', esc); document.body.classList.remove('travado') }
   }, [aberta, fechar])
 
-  useEffect(() => { try { localStorage.setItem(DADOS, JSON.stringify(dados)) } catch { /* sem armazenamento */ } }, [dados])
+  const calcular = (e: FormEvent) => { e.preventDefault(); s.calcularFrete() }
+  const online = s.ligado.pagamento && s.sobConsulta === 0
+  const podePagar = online && Boolean(s.frete) && s.enderecoCompleto && !s.pagando
+  const pedirWhats = () => window.open(linkWhats(s.mensagemWhatsApp()), '_blank', 'noopener')
 
-  const enviar = (e: FormEvent) => {
-    e.preventDefault()
-    if (!linhas.some((l) => l.produto)) return
-    window.open(waLink(mensagemPedido(linhas, dados)), '_blank', 'noopener')
-    setEnviado(true)
-  }
-  const campo = (k: keyof DadosPedido) => ({ value: dados[k], onChange: (e: { target: { value: string } }) => setDados((d) => ({ ...d, [k]: e.target.value })) })
+  return <>
+    <button type="button" className={`gaveta-fundo ${aberta ? 'is-aberta' : ''}`} onClick={fechar} aria-label="Fechar sacola" tabIndex={aberta ? 0 : -1} aria-hidden={!aberta} />
+    <aside className={`gaveta ${aberta ? 'is-aberta' : ''}`} aria-label="Sacola" aria-hidden={!aberta}>
+      <div className="gaveta-topo">
+        <h2>Sua sacola</h2>
+        <button type="button" className="icone-redondo" onClick={fechar} aria-label="Fechar"><X /></button>
+      </div>
 
-  return <AnimatePresence>
-    {aberta && <motion.div key="sacola" className="sacola" role="dialog" aria-modal="true" aria-labelledby="sacola-titulo"
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.35 }}>
-      <button type="button" className="sacola-fundo" aria-label="Fechar a sacola" tabIndex={-1} onClick={fechar} />
-      <motion.div ref={painel} className="sacola-painel" data-lenis-prevent
-        initial={{ x: '104%' }} animate={{ x: '0%' }} exit={{ x: '104%' }} transition={{ duration: 0.7, ease: ease.expo }}>
-        <header className="sacola-topo">
-          <div>
-            <p className="selo-texto">Pedido</p>
-            <h2 id="sacola-titulo">Sua sacola <small>{plural(r.pecas, 'peça', 'peças')}</small></h2>
-          </div>
-          <button type="button" className="sacola-fechar" onClick={fechar} aria-label="Fechar"><X aria-hidden="true" /></button>
-        </header>
-
-        {itens.length === 0
-          ? <div className="sacola-vazia">
-            <Faisca className="sacola-vazia-faisca anima" />
-            <p>A sacola está vazia.</p>
-            <span>Escolha a peça, a medida e o aço na loja.</span>
-            <Link href={linkLoja()} className="botao azul" onClick={fechar}><span className="botao-texto">Ver a loja</span><span className="botao-icone" aria-hidden="true"><ArrowUpRight /></span></Link>
-          </div>
-          : <>
-            <ul className="sacola-lista">
-              <AnimatePresence initial={false}>
-                {linhas.map((l) => <motion.li key={l.item.chave} layout className={`sacola-item ${l.produto ? '' : 'is-fora'}`}
-                  initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 60, height: 0, paddingBlock: 0 }}
-                  transition={{ duration: 0.5, ease: ease.expo }}>
-                  <span className="sacola-item-img">{l.produto && <ImagemPeca produto={l.produto} />}</span>
-                  <div className="sacola-item-info">
-                    {l.produto
-                      ? <Link href={linkProduto(l.produto.slug)} onClick={fechar} className="sacola-item-nome">{l.produto.nome}</Link>
-                      : <span className="sacola-item-nome">Peça fora da loja</span>}
-                    <small>{l.produto ? descricaoItem(l) : 'Essa peça saiu da loja. Remova para seguir.'}</small>
-                    <div className="sacola-item-base">
-                      <div className="qtd" role="group" aria-label="Quantidade">
-                        <button type="button" onClick={() => alterar(l.item.chave, l.item.qtd - 1)} aria-label="Diminuir" disabled={l.item.qtd <= 1}><Minus /></button>
-                        <input inputMode="numeric" aria-label="Quantidade" value={l.item.qtd}
-                          onChange={(e) => alterar(l.item.chave, Number(e.target.value.replace(/\D/g, '')) || 1)} />
-                        <button type="button" onClick={() => alterar(l.item.chave, l.item.qtd + 1)} aria-label="Aumentar"><Plus /></button>
-                      </div>
-                      <span className="sacola-item-preco">
-                        {status === 'carregando' ? <i className="preco-carregando" /> : l.unitario !== null
-                          ? <><small>{l.item.qtd} × {brl(l.unitario)}</small>{brl(l.unitario * l.item.qtd)}</>
-                          : <em>Sob consulta</em>}
-                      </span>
+      {s.linhas.length === 0
+        ? <div className="gaveta-vazia">
+          <p>Sua sacola está vazia.</p>
+          <a href="#loja" className="botao botao-contorno" onClick={fechar}>Ver as peças</a>
+        </div>
+        : <>
+          <div className="gaveta-corpo">
+            <ul className="gaveta-itens">
+              {s.linhas.map((l) => <li key={l.item.chave}>
+                <span className="gaveta-img">{l.produto && <ImagemPeca produto={l.produto} foto={l.foto} />}</span>
+                <div className="gaveta-item">
+                  <div className="gaveta-item-topo">
+                    <div>
+                      <h3>{l.produto?.nome ?? 'Peça fora da loja'}</h3>
+                      <small>{l.produto ? descricaoItem(l.item) : 'Remova para continuar.'}</small>
                     </div>
+                    <button type="button" className="gaveta-remover" onClick={() => s.remover(l.item.chave)}>remover</button>
                   </div>
-                  <button type="button" className="sacola-remover" onClick={() => remover(l.item.chave)} aria-label="Remover da sacola"><Trash2 /></button>
-                </motion.li>)}
-              </AnimatePresence>
+                  <div className="gaveta-item-base">
+                    <div className="qtd qtd-p">
+                      <button type="button" onClick={() => s.alterar(l.item.chave, l.item.qtd - 1)} aria-label="Menos um"><Minus /></button>
+                      <span>{l.item.qtd}</span>
+                      <button type="button" onClick={() => s.alterar(l.item.chave, l.item.qtd + 1)} aria-label="Mais um"><Plus /></button>
+                    </div>
+                    <b>{l.unitario !== null ? brl(l.unitario * l.item.qtd) : <em>sob consulta</em>}</b>
+                  </div>
+                </div>
+              </li>)}
             </ul>
 
-            <form className="sacola-base" onSubmit={enviar}>
-              <div className="sacola-conta">
-                <div><span>Subtotal</span><strong>{r.subtotal > 0 ? brl(r.subtotal) : '—'}</strong></div>
-                {r.sobConsulta > 0 && <p>+ {plural(r.sobConsulta, 'peça', 'peças')} sob consulta: a Inova manda o preço no WhatsApp.</p>}
-                <p>Frete, estoque e forma de pagamento são confirmados no atendimento.</p>
+            <div className="gaveta-bloco">
+              <span className="gaveta-rotulo"><Truck aria-hidden="true" />{s.ligado.frete ? 'Calcular frete' : 'Frete'}</span>
+              {!s.ligado.frete && <p className="gaveta-nota is-sem-margem">Enviamos para todo o Brasil. O frete é calculado pelo CEP e confirmado no atendimento.</p>}
+              {s.ligado.frete && <form onSubmit={calcular} className="gaveta-cep">
+                <input type="text" inputMode="numeric" autoComplete="postal-code" placeholder="00000-000" maxLength={9} value={s.cep} onChange={(e) => s.setCep(e.target.value)} aria-label="CEP de entrega" />
+                <button type="submit" className="botao botao-escuro botao-p" disabled={s.calculando}>{s.calculando ? <Loader2 className="girando" /> : 'Calcular'}</button>
+              </form>}
+              {!s.ligado.frete && <input className="gaveta-cep-solto" type="text" inputMode="numeric" autoComplete="postal-code" placeholder="Seu CEP (00000-000)" maxLength={9} value={s.cep} onChange={(e) => s.setCep(e.target.value)} aria-label="CEP de entrega" />}
+              {s.erroFrete && <p className="gaveta-erro">{s.erroFrete}</p>}
+              {!!s.opcoesFrete?.length && <fieldset className="gaveta-fretes">
+                <legend className="oculto">Escolha o frete</legend>
+                {s.opcoesFrete.map((o) => <label key={o.id} className={s.frete?.id === o.id ? 'is-ativa' : ''}>
+                  <input type="radio" name="frete" checked={s.frete?.id === o.id} onChange={() => s.setFrete(o)} />
+                  <span><b>{o.company} {o.service}</b>{o.deliveryDays && <small>até {o.deliveryDays} {o.deliveryDays === 1 ? 'dia útil' : 'dias úteis'}</small>}</span>
+                  <strong>{brl(o.price)}</strong>
+                </label>)}
+              </fieldset>}
+            </div>
+
+            <div className="gaveta-bloco">
+              <span className="gaveta-rotulo"><User aria-hidden="true" />Dados de entrega</span>
+              <div className="gaveta-campos">
+                <input placeholder="Nome completo" autoComplete="name" value={s.nome} onChange={(e) => s.setNome(e.target.value)} aria-label="Nome completo" />
+                <input type="tel" inputMode="numeric" placeholder="WhatsApp com DDD" autoComplete="tel" maxLength={16} value={s.telefone} onChange={(e) => s.setTelefone(e.target.value)} aria-label="WhatsApp com DDD" />
+                <input placeholder="CPF ou CNPJ (para a nota)" value={s.documento} onChange={(e) => s.setDocumento(e.target.value)} aria-label="CPF ou CNPJ" />
+                <div className="gaveta-linha">
+                  <input placeholder="Rua" autoComplete="address-line1" value={s.rua} onChange={(e) => s.setRua(e.target.value)} aria-label="Rua" />
+                  <input placeholder="Nº" inputMode="numeric" value={s.numero} onChange={(e) => s.setNumero(e.target.value)} aria-label="Número" />
+                </div>
+                <input placeholder="Complemento (opcional)" autoComplete="address-line2" value={s.complemento} onChange={(e) => s.setComplemento(e.target.value)} aria-label="Complemento" />
+                <div className="gaveta-linha is-meio">
+                  <input placeholder="Bairro" value={s.bairro} onChange={(e) => s.setBairro(e.target.value)} aria-label="Bairro" />
+                  <input placeholder="Cidade" autoComplete="address-level2" value={s.cidade} onChange={(e) => s.setCidade(e.target.value)} aria-label="Cidade" />
+                </div>
               </div>
+            </div>
+          </div>
 
-              <button type="button" className="sacola-dados-botao" aria-expanded={verDados} onClick={() => setVerDados((v) => !v)}>
-                Seus dados para o pedido <small>opcional</small><ChevronDown aria-hidden="true" />
-              </button>
-              <AnimatePresence initial={false}>
-                {verDados && <motion.div className="sacola-dados" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.5, ease: ease.expo }}>
-                  <div className="sacola-campos">
-                    <label><span>Nome</span><input {...campo('nome')} autoComplete="name" maxLength={60} /></label>
-                    <label><span>Empresa ou CNPJ</span><input {...campo('empresa')} autoComplete="organization" maxLength={80} /></label>
-                    <label><span>CEP de entrega</span><input {...campo('cep')} autoComplete="postal-code" inputMode="numeric" maxLength={12} /></label>
-                    <label className="sacola-campo-obs"><span>Observações</span><textarea {...campo('obs')} rows={2} maxLength={400} /></label>
-                  </div>
-                </motion.div>}
-              </AnimatePresence>
+          <div className="gaveta-base">
+            <div className="gaveta-conta">
+              <div><span>Subtotal</span><span>{brl(s.subtotal)}</span></div>
+              {s.sobConsulta > 0 && <div><span>Sob consulta</span><span>{s.sobConsulta} {s.sobConsulta === 1 ? 'peça' : 'peças'}</span></div>}
+              <div><span>Frete</span><span>{s.frete ? brl(s.valorFrete) : s.ligado.frete ? 'calcule o frete' : 'a combinar'}</span></div>
+              <div className="gaveta-total"><span>Total</span><b>{brl(s.totalGeral)}</b></div>
+            </div>
 
-              <AnimatePresence mode="wait" initial={false}>
-                {enviado
-                  ? <motion.div key="ok" className="sacola-enviado" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-                    <p>O pedido abriu no WhatsApp. Já enviou a mensagem?</p>
-                    <div>
-                      <button type="button" className="botao azul" onClick={() => { limpar(); fechar() }}><span className="botao-texto">Sim, limpar a sacola</span><span className="botao-icone" aria-hidden="true"><Trash2 /></span></button>
-                      <button type="submit" className="link-seta">Abrir de novo</button>
-                    </div>
-                  </motion.div>
-                  : <motion.div key="enviar" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                    <button type="submit" className="botao zap sacola-enviar" disabled={!linhas.some((l) => l.produto)}>
-                      <span className="botao-texto">Enviar pedido pelo WhatsApp</span>
-                      <span className="botao-icone" aria-hidden="true"><BrandIcon /></span>
-                    </button>
-                  </motion.div>}
-              </AnimatePresence>
-              <button type="button" className="sacola-limpar" onClick={limpar}>Esvaziar sacola</button>
-            </form>
-          </>}
-      </motion.div>
-    </motion.div>}
-  </AnimatePresence>
+            {online
+              ? <>
+                <p className="gaveta-nota">Pagamento seguro pelo Mercado Pago, em Pix, cartão ou boleto.</p>
+                {s.erroPagamento && <p className="gaveta-erro is-caixa">{s.erroPagamento}</p>}
+                <button type="button" className="botao botao-azul botao-largo" onClick={s.finalizar} disabled={!podePagar}>
+                  {s.pagando ? <><Loader2 className="girando" />Preparando pagamento…</> : <><Lock aria-hidden="true" />Finalizar compra</>}
+                </button>
+                {!podePagar && !s.pagando && <p className="gaveta-dica">{!s.frete ? 'Calcule e escolha o frete para continuar.' : 'Preencha os dados de entrega para continuar.'}</p>}
+                <button type="button" className="gaveta-alt" onClick={pedirWhats}>Prefiro fechar pelo WhatsApp</button>
+              </>
+              : <>
+                <p className="gaveta-nota">{s.sobConsulta > 0
+                  ? 'Tem peça sob consulta na sacola: a Inova responde com o valor e o frete no WhatsApp.'
+                  : 'O pedido vai pronto para o WhatsApp da Inova, que confirma estoque, frete e pagamento.'}</p>
+                <button type="button" className="botao botao-whats botao-largo" onClick={pedirWhats}><IconeWhats />Enviar pedido pelo WhatsApp</button>
+                <p className="gaveta-dica">{SITE.whatsappVisivel}</p>
+              </>}
+          </div>
+        </>}
+    </aside>
+  </>
 }

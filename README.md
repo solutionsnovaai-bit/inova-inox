@@ -1,57 +1,60 @@
-# Inova Inox · Loja
+# Inova Inox · loja
 
-Loja da Inova Inox: conexões sanitárias e industriais em inox 304 e 316 (Tri-Clamp, SMS, RJT, DIN, OD, BSP e NPT), com sacola e pedido fechado pelo WhatsApp. Os preços vêm de uma planilha do Google.
+Site e loja da Inova Inox: conexões sanitárias e industriais em inox 304 e 316, serviços de usinagem, solda e polimento, e o catálogo técnico para folhear.
 
-Vite 6, React 19, TypeScript, Motion 12 e Lenis. Fonte Archivo servida junto com o site.
+Página única: abertura com o logo, faixa, loja (busca, linhas, cards, janela da peça), serviços, dúvidas, catálogo técnico e rodapé. Sacola lateral com frete pelo Melhor Envio e pagamento pelo Mercado Pago.
 
 ## Rodar
 
 ```bash
 npm install
 npm run dev      # desenvolvimento
-npm run build    # versão final em dist/
+npm run build    # gera dist/
 ```
 
-Na Vercel: framework Vite, comando `npm run build`, pasta `dist`. O `vercel.json` manda todos os endereços para o `index.html`, então `/loja`, `/produto/...` e `/catalogo` abrem direto.
+As funções em `api/` (frete, pagamento e aviso de pagamento) rodam na Vercel.
 
-## Páginas
+## Preços, fotos e peças pela planilha
 
-| Endereço | O que é |
+A planilha modelo está em `planilha/inova-inox-loja.xlsx`.
+
+1. Suba o arquivo no Google Drive e abra como Planilhas Google.
+2. Compartilhar → "Qualquer pessoa com o link" → Leitor.
+3. Cole o link em `PLANILHA` no arquivo `src/loja/ajustes.js` (ou na variável `PLANILHA_URL` da Vercel).
+
+Colunas da aba **Produtos** (a tabela começa na linha 4):
+
+| Coluna | Para que serve |
 | --- | --- |
-| `/` | Início: abertura, linhas da loja, peças em destaque, serviços, oficina, como comprar, catálogo, orçamento sob desenho e dúvidas |
-| `/loja` | Todas as peças, com busca, linhas (`?linha=tri-clamp`), grupos e ordem |
-| `/produto/<peça>` | Peça: desenho, fotos, ficha do catálogo, medida, aço, padrão, quantidade e preço |
-| `/catalogo` | Catálogo técnico para folhear (`?pagina=5` abre na página 5) |
+| Categoria, Produto, Medida | Identificam a peça. O nome do produto liga a linha à peça do catálogo. |
+| Preço 304 (ou preço único) / Preço 316 | Vazio = "sob consulta". |
+| Unidade | un, m, kg… |
+| Peso (g) | Usado no cálculo do frete. Vazio = 300 g. |
+| Mostrar no site | "não" esconde a medida. |
+| Destaque | "sim" puxa a peça para o começo da loja. |
+| Foto (link do Google Drive) | Link de imagem compartilhada; pode ter mais de um. |
+| Descrição (opcional) | Substitui o texto padrão da peça. |
 
-## Preços e fotos pela planilha do Google
+Enquanto nenhuma planilha estiver ligada, a loja mostra preços de exemplo (R$ 300, com a marca "ex.").
 
-A planilha modelo está em `planilha/inova-inox-loja.xlsx`, com o logotipo no topo e as 96 peças do catálogo técnico, uma linha por medida. A tabela começa na linha 4.
+## Frete e pagamento
 
-1. No Google Drive, **Novo > Upload de arquivo** com o `.xlsx`. Abra com o Google Planilhas e use **Arquivo > Salvar como Planilhas Google**.
-2. Em **Arquivo > Configurações**, deixe a localidade como **Brasil**.
-3. Em **Compartilhar**, "Acesso geral": **Qualquer pessoa com o link: Leitor**. Quem vai mexer nos preços entra como **Editor** pelo e-mail.
-4. Copie o link da planilha e cole em `src/loja/config.ts`, no campo `PLANILHA` (ou crie a variável `VITE_PLANILHA_URL` na Vercel). Publique.
+Variáveis de ambiente na Vercel (Settings → Environment Variables):
 
-Como a planilha funciona (está explicado também na aba **Como usar**):
+| Variável | O que é |
+| --- | --- |
+| `MERCADOPAGO_ACCESS_TOKEN` | Access Token de produção do Mercado Pago. |
+| `MELHORENVIO_TOKEN` | Token da conta do Melhor Envio. |
+| `MELHORENVIO_ORIGEM_CEP` | CEP de onde as peças saem (também pode ir em `FRETE.origemCep`, em `ajustes.js`). |
+| `MELHORENVIO_SANDBOX` | `true` para testar no ambiente de testes do Melhor Envio. |
+| `PLANILHA_URL` | Link da planilha (opcional, se não estiver em `ajustes.js`). |
 
-- **Preço 304 (ou preço único)** e **Preço 316**: em branco, a peça aparece como "sob consulta". Aceita `38`, `38,50` ou `R$ 38,50`.
-- **Mostrar no site**: `Não` esconde aquela medida. Peça sem nenhuma medida visível sai da loja.
-- **Destaque**: `Sim` em qualquer linha coloca a peça na vitrine do início.
-- **Unidade**: como a peça é vendida (un, m, barra...).
-- **Foto (link do Google Drive)**: link de compartilhar de uma foto numa pasta do Drive aberta para "Qualquer pessoa com o link". A primeira foto da peça vira a imagem principal na loja (no lugar do desenho); foto na linha de uma medida troca quando o cliente escolhe aquela medida; vários links na mesma célula, separados por espaço, viram várias fotos. Também aceita link direto de imagem e link do Dropbox. Se o link não abrir, o site mostra o desenho do catálogo.
-- **Peça nova**: linhas com um nome de produto novo viram uma peça nova, na categoria escrita na coluna Categoria. **Descrição** é opcional (em peça existente, troca o texto do site).
-- Não apague a faixa do logotipo (linhas 1 a 3) nem mude os nomes das colunas da linha 4.
+O servidor sempre confere preço e frete direto na planilha e no Melhor Envio; nada que vem do navegador é usado como valor.
 
-A loja lê a planilha toda vez que a página abre e guarda a última leitura no navegador. Sem planilha ligada, mostra o catálogo inteiro sob consulta.
+Sem essas chaves o site continua funcionando: a sacola monta o pedido completo e envia para o WhatsApp da Inova. Peças sob consulta também fecham pelo WhatsApp.
 
-## Pedido
+Dimensões da caixa padrão e peso padrão ficam em `FRETE`, no `src/loja/ajustes.js`.
 
-A sacola fica salva no navegador da pessoa. Ao enviar, abre o WhatsApp da Inova com a lista das peças (medida, aço, opções, quantidade, preço) e os dados que a pessoa preencheu. Estoque, frete e pagamento são combinados no atendimento.
+## Contato
 
-## Onde mexer
-
-- Contatos e link da planilha: `src/loja/config.ts`
-- Base das peças (nome, medidas, opções, desenho, página do catálogo, texto): `src/loja/produtos.ts`
-- Fotos e vídeos: `src/assets` (lista em `src/lib/midia.ts`)
-- Desenhos das peças: pranchas em `src/assets/pecas`, recortadas do catálogo técnico
-- Estilos: `src/estilos`
+WhatsApp (11) 98198-7909 · Telefone (11) 2705-1775
