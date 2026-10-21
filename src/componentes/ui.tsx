@@ -39,7 +39,7 @@ export function Desenho({ desenho, alt = '', prioridade = false }: { desenho: [n
   </span>
 }
 
-/** Foto vinda da planilha (Drive, Dropbox ou link direto). Se não abrir, mostra a reserva (o desenho). */
+/** Foto da peça (link direto, Drive ou Dropbox). Se não abrir, mostra a reserva (o desenho). */
 export function FotoLoja({ link, alt, prioridade = false, reserva = null }: { link: string; alt: string; prioridade?: boolean; reserva?: ReactNode }) {
   const enderecos = enderecosImagem(link)
   const [t, setT] = useState(0)
@@ -52,7 +52,7 @@ export function FotoLoja({ link, alt, prioridade = false, reserva = null }: { li
 
 const desenhoDaLinha = (categoria: string) => PRODUTOS_BASE.find((b) => b.categoria === categoria)?.desenho ?? PRODUTOS_BASE[0].desenho
 
-/** Imagem principal: foto da planilha; senão foto real da oficina (peça sem desenho); senão o desenho do catálogo. */
+/** Imagem principal: foto do painel; senão foto real da oficina (peça sem desenho); senão o desenho do catálogo. */
 export function ImagemPeca({ produto, foto, prioridade = false }: { produto: Produto; foto?: string; prioridade?: boolean }) {
   const desenho = <Desenho desenho={produto.desenho ?? desenhoDaLinha(produto.categoria)} alt={`Desenho técnico: ${produto.nome}`} prioridade={prioridade} />
   const link = foto ?? produto.fotosLoja[0]

@@ -1,14 +1,14 @@
 // api/_painel.js
 //
 // Dados do painel da loja (fotos e preços), guardados no armazenamento Blob da Vercel.
-// Um único arquivo (painel/dados.json) com o estado atual, mais uma cópia de cada
-// versão salva em painel/historico/, para recuperar se algo for apagado sem querer.
+// Um único arquivo (painel/dados.json) com o estado atual. Cada gravação é uma operação
+// só no Blob (as fotos, uma cada), para caber folgado na cota gratuita da Vercel.
 //
 // Na Vercel: Storage → Create → Blob (Public) → Connect ao projeto.
 // A variável BLOB_READ_WRITE_TOKEN entra sozinha; não há mais nada para configurar.
 
 import { get, put } from '@vercel/blob'
-import { chaveMedida } from '../src/loja/planilha.js'
+import { chaveMedida } from '../src/loja/precos.js'
 
 const ARQUIVO = 'painel/dados.json'
 const SLUG = /^[a-z0-9-]{1,90}$/
@@ -74,9 +74,6 @@ export async function lerPainel() {
 export async function salvarPainel(dados) {
   const corpo = JSON.stringify(dados)
   await put(ARQUIVO, corpo, { access: 'public', addRandomSuffix: false, allowOverwrite: true, contentType: 'application/json', cacheControlMaxAge: 60 })
-  const carimbo = new Date().toISOString().replace(/[:.]/g, '-')
-  put(`painel/historico/${carimbo}.json`, corpo, { access: 'public', addRandomSuffix: true, contentType: 'application/json' })
-    .catch((e) => console.error('[painel] histórico:', e))
 }
 
 export async function salvarFoto(slug, tipo, binario) {
@@ -86,7 +83,7 @@ export async function salvarFoto(slug, tipo, binario) {
   return r.url
 }
 
-/** Preços do painel no mesmo formato do mapa da planilha ("peça|medida" → linha). */
+/** Preços do painel como mapa "peça|medida" → linha, para conferir pedido e frete. */
 export function precosDoPainel(dados) {
   const mapa = new Map()
   for (const peca of Object.values(dados?.precos ?? {})) {

@@ -3,7 +3,7 @@ import { Search, X } from 'lucide-react'
 import { useEstoque } from '../loja/estoque'
 import type { Produto } from '../loja/tipos'
 import { brl, menorPreco, plural, resumoMedidas } from '../loja/util'
-import { normalizar } from '../loja/planilha.js'
+import { normalizar } from '../loja/precos.js'
 import { Cabecalho, ImagemPeca, IconeWhats, useRevelar } from './ui'
 import { linkWhats } from './Topo'
 

@@ -30,7 +30,7 @@ export const slugificar = (s: string) =>
   String(s ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'peca'
 
 /**
-  Endereços para mostrar uma foto vinda da planilha, em ordem de tentativa.
+  Endereços para mostrar uma foto da peça, em ordem de tentativa.
   Link de compartilhar do Google Drive vira link direto de imagem (com uma reserva);
   link do Dropbox vira o arquivo cru; qualquer outro link de imagem passa como está.
 */

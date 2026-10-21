@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } f
 import { Check, CloudOff, ExternalLink, ImagePlus, Images, Loader2, Search, Star, Tag, Undo2, X } from 'lucide-react'
 import { Desenho } from '../componentes/ui'
 import { logo } from '../lib/midia'
-import { lerPreco, normalizar } from '../loja/planilha.js'
+import { lerPreco, normalizar } from '../loja/precos.js'
+import { CACHE_PAINEL } from '../loja/cache'
 import { CATEGORIAS, PRODUTOS_BASE } from '../loja/produtos'
 import type { DadosPainel, ProdutoBase } from '../loja/tipos'
 
@@ -87,13 +88,18 @@ export function Painel() {
   const [linha, setLinha] = useState('todas')
   const [edicoes, setEdicoes] = useState<Record<string, string>>({})
   const [subindo, setSubindo] = useState<Record<string, number>>({})
-  const [salvando, setSalvando] = useState(false)
+  const [emAndamento, setEmAndamento] = useState(0)
+  const salvando = emAndamento > 0
   const [aviso, setAviso] = useState<Aviso>(null)
-  const dadosRef = useRef(dados)
+  /** Último estado confirmado pelo servidor e mudanças ainda a caminho (já mostradas na tela). */
+  const confirmado = useRef<DadosPainel>(vazio())
+  const pendentes = useRef<((d: DadosPainel) => DadosPainel)[]>([])
   const fila = useRef<Promise<unknown>>(Promise.resolve())
   const relogio = useRef(0)
 
-  useEffect(() => { dadosRef.current = dados }, [dados])
+  const redesenhar = useCallback(() => setDados(pendentes.current.reduce((d, f) => f(d), confirmado.current)), [])
+  /** Avisa a loja aberta neste aparelho (outra aba) para mostrar a versão nova na hora. */
+  const avisarLoja = (d: DadosPainel) => { try { localStorage.setItem(CACHE_PAINEL, JSON.stringify(d)) } catch { /* sem armazenamento */ } }
 
   const avisar = useCallback((texto: string, tipo: 'ok' | 'erro' = 'ok') => {
     setAviso({ texto, tipo })
@@ -104,28 +110,38 @@ export function Painel() {
   useEffect(() => {
     chamar<{ armazenamento: boolean; dados: DadosPainel }>('abrir')
       .then(({ dados: r }) => {
-        setDados(r.dados ?? vazio())
+        confirmado.current = r.dados ?? vazio()
+        redesenhar()
         setLigado(r.armazenamento)
         setFase('pronto')
       })
       .catch((e: Error) => { setMensagem(e.message); setFase('erro') })
   }, [])
 
-  /** Toda gravação passa por uma fila, uma de cada vez, sempre a partir do último estado salvo. */
+  /**
+    Toda mudança aparece na tela na hora e vai para uma fila: uma gravação de cada vez,
+    sempre aplicada sobre o último estado confirmado. Se falhar, a tela volta ao que está salvo.
+  */
   const gravar = useCallback((mudar: (d: DadosPainel) => DadosPainel) => {
+    pendentes.current.push(mudar)
+    setEmAndamento((n) => n + 1)
+    redesenhar()
     const tarefa = fila.current.then(async () => {
-      setSalvando(true)
       try {
-        const novo = mudar(dadosRef.current)
+        const novo = mudar(confirmado.current)
         const { dados: r } = await chamar<{ dados: DadosPainel }>('salvar', { precos: novo.precos, fotos: novo.fotos })
-        dadosRef.current = r.dados
-        setDados(r.dados)
+        confirmado.current = r.dados
+        avisarLoja(r.dados)
         return true
-      } finally { setSalvando(false) }
+      } finally {
+        pendentes.current = pendentes.current.filter((f) => f !== mudar)
+        setEmAndamento((n) => n - 1)
+        redesenhar()
+      }
     })
     fila.current = tarefa.catch(() => undefined)
     return tarefa
-  }, [])
+  }, [redesenhar])
 
   /* ----- fotos ----- */
 
@@ -202,7 +218,14 @@ export function Painel() {
       }
       return { ...d, precos }
     })
-      .then(() => { setEdicoes({}); avisar('Preços publicados no site.') })
+      .then(() => {
+        setEdicoes((x) => {
+          const resto = { ...x }
+          for (const [k, v] of Object.entries(congeladas)) if (resto[k] === v) delete resto[k]
+          return resto
+        })
+        avisar('Preços publicados no site.')
+      })
       .catch((e: Error) => avisar(e.message, 'erro'))
   }
 
@@ -327,7 +350,7 @@ export function Painel() {
     {aba === 'precos' && alteradas.length > 0 && <div className="pn-barra" role="region" aria-label="Alterações de preço">
       <span><b>{alteradas.length}</b> {alteradas.length === 1 ? 'preço alterado' : 'preços alterados'}</span>
       <button type="button" className="botao botao-p botao-vidro" onClick={() => setEdicoes({})}><Undo2 />Desfazer</button>
-      <button type="button" className="botao botao-p botao-azul" onClick={salvarPrecos} disabled={salvando}>
+      <button type="button" className="botao botao-p botao-azul" onClick={salvarPrecos}>
         {salvando ? <><Loader2 className="girando" />Publicando…</> : <><Check />Salvar e publicar</>}
       </button>
     </div>}

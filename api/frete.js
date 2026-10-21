@@ -1,7 +1,7 @@
 // api/frete.js
 //
 // Cota o frete no Melhor Envio. Recebe o CEP de destino e os itens da sacola,
-// confere as peças na planilha (peso de cada uma vem da coluna "Peso (g)";
+// confere as peças nos preços do painel (peso padrão de cada peça em ajustes.js)
 // vazia, usa o peso padrão de src/loja/ajustes.js) e devolve as opções reais
 // (transportadora, serviço, preço e prazo).
 //

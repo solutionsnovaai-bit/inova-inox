@@ -1,7 +1,6 @@
 /*
   Base da loja: as 96 peças do catálogo técnico, com as medidas de cada tabela.
-  Sem a planilha ligada, a loja mostra tudo isto com preço sob consulta.
-  Com a planilha ligada (src/loja/config.ts), é a planilha que decide o que aparece e por quanto.
+  Fotos e preços de cada medida vêm do painel da loja (/painel).
 */
 import type { Categoria, ProdutoBase } from './tipos'
 
@@ -138,5 +137,5 @@ export const PRODUTOS_BASE: ProdutoBase[] = [
   { slug: "espigao-rosca", nome: "Espigão rosca BSP/NPT", categoria: "industrial", grupo: "Espigões", medidas: I12, opcoes: [{ nome: "Rosca", valores: ["BSP", "NPT"] }], material: true, pagina: 16, desenho: [2, 4, 5], fotos: [], texto: "Espigão para mangueira com rosca macho BSP ou NPT e sextavado para a chave." },
 ]
 
-/** Vitrine da página inicial quando a planilha não marca destaques. */
+/** Peças que aparecem primeiro na loja. */
 export const DESTAQUES_BASE = ["curva-90-2tc", "te-reto-3tc", "abracadeira-tc", "niple-solda-tc", "reducao-2tc", "curva-90-solda", "uniao-rjt", "visor-tubular", "niple-adaptador-tc-mangueira", "cotovelo-90-femea", "niple-duplo-sextavado", "spray-ball"]

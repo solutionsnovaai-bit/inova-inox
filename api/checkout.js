@@ -3,19 +3,19 @@
 // GET:  diz ao site o que já está ligado ({ pagamento, frete }), para a sacola
 //       mostrar "Finalizar compra" (Mercado Pago) ou "Enviar pedido pelo WhatsApp".
 // POST: recebe a sacola, o frete escolhido e os dados de entrega, RECALCULA tudo
-//       no servidor (preços na planilha, frete recotado no Melhor Envio) e cria a
+//       no servidor (preços do painel, frete recotado no Melhor Envio) e cria a
 //       preferência no Mercado Pago (Checkout Pro). Devolve init_point para o site
 //       redirecionar o cliente.
 //
 // Variáveis de ambiente (Vercel):
 //   MERCADOPAGO_ACCESS_TOKEN   Access Token de produção da conta Mercado Pago da Inova
-//   (mais as do frete, em api/frete.js, e o link da planilha)
+//   (mais as do frete, em api/frete.js, e o armazenamento Blob do painel)
 //
 // Sem banco de dados: pra quem e pra onde enviar vai no metadata do pagamento,
 // visível no painel do Mercado Pago, e no log do webhook.
 
 import { SITE } from '../src/loja/ajustes.js'
-import { carregarPrecos, cepOrigem, conferirItens, ErroLoja, getOrigin, limpar, linkPlanilha, readJsonBody, sanitizeCep } from './_lib.js'
+import { carregarPrecos, cepOrigem, conferirItens, ErroLoja, getOrigin, limpar, precosLigados, readJsonBody, sanitizeCep } from './_lib.js'
 import { quoteShipping } from './frete.js'
 
 const MP_PREFERENCES_URL = 'https://api.mercadopago.com/checkout/preferences'
@@ -25,8 +25,8 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     return res.status(200).json({
-      pagamento: Boolean(process.env.MERCADOPAGO_ACCESS_TOKEN && linkPlanilha()),
-      frete: Boolean(process.env.MELHORENVIO_TOKEN && cepOrigem() && linkPlanilha()),
+      pagamento: Boolean(process.env.MERCADOPAGO_ACCESS_TOKEN && precosLigados()),
+      frete: Boolean(process.env.MELHORENVIO_TOKEN && cepOrigem() && precosLigados()),
     })
   }
   if (req.method !== 'POST') {

@@ -1,12 +1,12 @@
 // api/_lib.js
 //
 // Utilitários das funções do servidor (frete, checkout e webhook).
-// Os preços SEMPRE vêm do painel da loja e/ou da planilha do Google, lidos aqui no servidor:
+// Os preços SEMPRE vêm do painel da loja, lidos aqui no servidor:
 // nada que o navegador manda sobre preço é aceito.
 
-import { FRETE, PLANILHA } from '../src/loja/ajustes.js'
-import { chaveMedida, fontesPlanilha, tabelaDePrecos } from '../src/loja/planilha.js'
-import { lerPainel, precosDoPainel } from './_painel.js'
+import { FRETE } from '../src/loja/ajustes.js'
+import { chaveMedida } from '../src/loja/precos.js'
+import { armazenamentoLigado, lerPainel, precosDoPainel } from './_painel.js'
 
 export const MAX_QTD_ITEM = 500
 const MAX_TEXTO = 120
@@ -33,47 +33,23 @@ export function sanitizeCep(raw) {
 
 export const limpar = (v) => String(v ?? '').trim().slice(0, MAX_TEXTO)
 
-export const linkPlanilha = () => (process.env.PLANILHA_URL || process.env.VITE_PLANILHA_URL || PLANILHA || '').trim()
+export const precosLigados = armazenamentoLigado
 export const cepOrigem = () => sanitizeCep(process.env.MELHORENVIO_ORIGEM_CEP || FRETE.origemCep)
 
 export class ErroLoja extends Error {
   constructor(status, message) { super(message); this.status = status }
 }
 
-async function lerPlanilha(link) {
-  for (const url of fontesPlanilha(link)) {
-    try {
-      const r = await fetch(`${url}${url.includes('?') ? '&' : '?'}t=${Date.now()}`, { cache: 'no-store' })
-      if (!r.ok) continue
-      const mapa = tabelaDePrecos(await r.text())
-      if (mapa && mapa.size) return mapa
-    } catch (e) {
-      console.error('[planilha] falha ao ler:', e)
-    }
-  }
-  return null
-}
-
-/** Mapa "peça|medida" → preços, peso e visibilidade. O painel manda; a planilha (se ligada) completa. */
+/** Mapa "peça|medida" → preços, lido do painel da loja. */
 export async function carregarPrecos() {
-  const link = linkPlanilha()
-  const [painel, planilha] = await Promise.all([lerPainel(), link ? lerPlanilha(link) : null])
-  const doPainel = painel ? precosDoPainel(painel) : new Map()
-  if (!planilha && !doPainel.size) {
-    throw link
-      ? new ErroLoja(502, 'Não foi possível conferir os preços agora. Tente de novo em instantes.')
-      : new ErroLoja(503, 'A loja ainda não está com os preços ligados. Finalize pelo WhatsApp.')
-  }
-  const mapa = new Map(planilha ?? [])
-  for (const [chave, linha] of doPainel) {
-    const base = mapa.get(chave)
-    mapa.set(chave, base ? { ...base, p304: linha.p304 ?? base.p304, p316: linha.p316 ?? base.p316, visivel: true } : linha)
-  }
+  const painel = await lerPainel()
+  const mapa = painel ? precosDoPainel(painel) : new Map()
+  if (!mapa.size) throw new ErroLoja(503, 'A loja ainda não está com os preços ligados. Finalize pelo WhatsApp.')
   return mapa
 }
 
 /**
-  Confere cada item da sacola contra a planilha.
+  Confere cada item da sacola contra os preços do painel.
   Cada item: { nome, medida, aco: '304' | '316' | null, opcoes: { [nome]: valor }, qtd }.
   Devolve os itens com preço unitário e peso conferidos.
 */

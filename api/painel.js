@@ -14,7 +14,7 @@ export default async function handler(req, res) {
   const acao = String(req.query?.acao || '')
   try {
     if (req.method === 'GET' && !acao) {
-      res.setHeader('Cache-Control', 'public, s-maxage=15, stale-while-revalidate=120')
+      res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=5')
       return res.status(200).json((await lerPainel()) ?? vazio())
     }
 
