@@ -1,14 +1,12 @@
 // api/painel.js
 //
-// GET  /api/painel                 público: fotos e preços do painel (o site lê daqui)
-// GET  /api/painel?acao=abrir      com a chave: confere o acesso e devolve o estado atual
-// POST /api/painel?acao=salvar     com a chave: { precos, fotos } → grava uma nova versão
-// POST /api/painel?acao=foto       com a chave: { slug, tipo, base64 } → sobe a foto e devolve o link
-//
-// A chave vai no cabeçalho x-painel-chave (o painel tira do link ?chave=...).
+// GET  /api/painel                 fotos e preços do painel (o site lê daqui)
+// GET  /api/painel?acao=abrir      estado atual sem cache + se o armazenamento está ligado
+// POST /api/painel?acao=salvar     { precos, fotos } → grava uma nova versão
+// POST /api/painel?acao=foto       { slug, tipo, base64 } → sobe a foto e devolve o link
 
 import { readJsonBody } from './_lib.js'
-import { armazenamentoLigado, chavePainel, chaveValida, lerPainel, normalizarDados, salvarFoto, salvarPainel, vazio } from './_painel.js'
+import { armazenamentoLigado, lerPainel, mesmoSite, normalizarDados, salvarFoto, salvarPainel, vazio } from './_painel.js'
 
 const MAX_FOTO = 3_000_000
 
@@ -21,8 +19,6 @@ export default async function handler(req, res) {
     }
 
     res.setHeader('Cache-Control', 'no-store')
-    if (!chavePainel()) return res.status(503).json({ erro: 'O painel ainda não foi ativado. Falta a variável PAINEL_CHAVE na Vercel.' })
-    if (!chaveValida(req)) return res.status(401).json({ erro: 'Link de acesso inválido. Peça o link correto do painel.' })
 
     if (req.method === 'GET' && acao === 'abrir') {
       const ligado = armazenamentoLigado()
@@ -33,7 +29,8 @@ export default async function handler(req, res) {
       res.setHeader('Allow', 'GET, POST')
       return res.status(405).json({ erro: 'Método não permitido.' })
     }
-    if (!armazenamentoLigado()) return res.status(503).json({ erro: 'Falta ligar o armazenamento (Blob) do projeto na Vercel.' })
+    if (!mesmoSite(req)) return res.status(403).json({ erro: 'Use o painel do próprio site.' })
+    if (!armazenamentoLigado()) return res.status(503).json({ erro: 'Falta ligar o armazenamento na Vercel (Storage → Blob).' })
     const corpo = readJsonBody(req)
 
     if (acao === 'salvar') {

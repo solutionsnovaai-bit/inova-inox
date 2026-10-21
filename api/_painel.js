@@ -4,11 +4,9 @@
 // Um único arquivo (painel/dados.json) com o estado atual, mais uma cópia de cada
 // versão salva em painel/historico/, para recuperar se algo for apagado sem querer.
 //
-// Variáveis na Vercel:
-//   BLOB_READ_WRITE_TOKEN   criada sozinha ao conectar um Blob (público) ao projeto
-//   PAINEL_CHAVE            a chave que vai no link do painel (?chave=...)
+// Na Vercel: Storage → Create → Blob (Public) → Connect ao projeto.
+// A variável BLOB_READ_WRITE_TOKEN entra sozinha; não há mais nada para configurar.
 
-import { timingSafeEqual } from 'node:crypto'
 import { get, put } from '@vercel/blob'
 import { chaveMedida } from '../src/loja/planilha.js'
 
@@ -17,12 +15,13 @@ const SLUG = /^[a-z0-9-]{1,90}$/
 const FOTO = /^https:\/\/[a-z0-9.-]+\.blob\.vercel-storage\.com\/[^\s"'<>]+$/i
 
 export const armazenamentoLigado = () => Boolean(process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID)
-export const chavePainel = () => String(process.env.PAINEL_CHAVE || '').trim()
 
-export function chaveValida(req) {
-  const certa = Buffer.from(chavePainel())
-  const dada = Buffer.from(String(req.headers['x-painel-chave'] || '').trim())
-  return certa.length >= 12 && certa.length === dada.length && timingSafeEqual(certa, dada)
+/** Só aceita gravação vinda do próprio site (o painel), não de outras páginas. */
+export function mesmoSite(req) {
+  const host = String(req.headers['x-forwarded-host'] || req.headers.host || '')
+  const de = String(req.headers.origin || req.headers.referer || '')
+  if (!de) return true
+  try { return new URL(de).host === host } catch { return false }
 }
 
 export const vazio = () => ({ versao: 1, atualizado: null, precos: {}, fotos: {} })

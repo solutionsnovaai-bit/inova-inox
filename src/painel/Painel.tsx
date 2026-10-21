@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
-import { Check, ExternalLink, ImagePlus, Images, Loader2, Lock, Search, Star, Tag, Undo2, X } from 'lucide-react'
+import { Check, CloudOff, ExternalLink, ImagePlus, Images, Loader2, Search, Star, Tag, Undo2, X } from 'lucide-react'
 import { Desenho } from '../componentes/ui'
 import { logo } from '../lib/midia'
 import { lerPreco, normalizar } from '../loja/planilha.js'
@@ -10,28 +10,19 @@ import type { DadosPainel, ProdutoBase } from '../loja/tipos'
   Painel da loja: o "controle remoto" do site.
   Aba Imagens: fotos de cada peça (a primeira é a principal no site).
   Aba Preços: preço de cada medida em inox 304 e 316 (vazio = sob consulta).
-  O acesso é pelo link com a chave (?chave=...), que fica guardada neste aparelho.
+  Abre direto em /painel (não aparece em nenhum link do site nem no Google).
 */
 
 type Aba = 'imagens' | 'precos'
-type Fase = 'abrindo' | 'sem-chave' | 'negado' | 'desligado' | 'sem-armazenamento' | 'erro' | 'pronto'
+type Fase = 'abrindo' | 'erro' | 'pronto'
 type Aviso = { texto: string; tipo: 'ok' | 'erro' } | null
 
-const GUARDA = 'inova-painel-chave'
 const vazio = (): DadosPainel => ({ atualizado: null, precos: {}, fotos: {} })
 
-function pegarChave() {
-  const daUrl = new URLSearchParams(location.search).get('chave')?.trim()
-  try {
-    if (daUrl) localStorage.setItem(GUARDA, daUrl)
-    return daUrl || localStorage.getItem(GUARDA) || ''
-  } catch { return daUrl || '' }
-}
-
-async function chamar<T>(acao: string, chave: string, corpo?: unknown): Promise<{ status: number; dados: T }> {
+async function chamar<T>(acao: string, corpo?: unknown): Promise<{ status: number; dados: T }> {
   const r = await fetch(`/api/painel?acao=${acao}&t=${Date.now()}`, {
     method: corpo === undefined ? 'GET' : 'POST',
-    headers: { 'x-painel-chave': chave, ...(corpo === undefined ? {} : { 'Content-Type': 'application/json' }) },
+    headers: corpo === undefined ? {} : { 'Content-Type': 'application/json' },
     body: corpo === undefined ? undefined : JSON.stringify(corpo),
   })
   const dados = await r.json().catch(() => ({})) as T & { erro?: string }
@@ -73,21 +64,13 @@ const hora = (iso: string | null) => (iso ? new Date(iso).toLocaleString('pt-BR'
 /* ---------- telas de entrada ---------- */
 
 function Entrada({ fase, mensagem }: { fase: Fase; mensagem: string }) {
-  const textos: Partial<Record<Fase, [string, string]>> = {
-    'sem-chave': ['Link incompleto', 'Abra o painel pelo link completo que você recebeu (ele termina com ?chave=...).'],
-    negado: ['Link de acesso inválido', 'Esse link não abre o painel. Peça o link correto.'],
-    desligado: ['Painel ainda não ativado', mensagem],
-    'sem-armazenamento': ['Falta um passo na Vercel', 'O armazenamento de fotos e preços (Blob) ainda não foi ligado ao projeto.'],
-    erro: ['Não conseguimos abrir o painel', mensagem || 'Confira a internet e tente de novo.'],
-  }
-  const [titulo, texto] = textos[fase] ?? ['Abrindo o painel…', '']
   return <main className="pn-entrada">
     <div className="pn-entrada-cartao">
       <img src={logo.completo} alt="Inova Inox" className="pn-entrada-logo" />
-      {fase === 'abrindo' ? <Loader2 className="girando pn-entrada-roda" aria-label="Carregando" /> : <span className="pn-entrada-icone"><Lock /></span>}
-      <h1>{titulo}</h1>
-      {texto && <p>{texto}</p>}
-      {fase === 'erro' && <button type="button" className="botao botao-claro" onClick={() => location.reload()}>Tentar de novo</button>}
+      {fase === 'abrindo'
+        ? <><Loader2 className="girando pn-entrada-roda" aria-label="Carregando" /><h1>Abrindo o painel…</h1></>
+        : <><span className="pn-entrada-icone"><CloudOff /></span><h1>Não conseguimos abrir o painel</h1><p>{mensagem || 'Confira a internet e tente de novo.'}</p>
+          <button type="button" className="botao botao-claro" onClick={() => location.reload()}>Tentar de novo</button></>}
     </div>
   </main>
 }
@@ -95,8 +78,8 @@ function Entrada({ fase, mensagem }: { fase: Fase; mensagem: string }) {
 /* ---------- painel ---------- */
 
 export function Painel() {
-  const [chave] = useState(pegarChave)
-  const [fase, setFase] = useState<Fase>(() => (chave ? 'abrindo' : 'sem-chave'))
+  const [fase, setFase] = useState<Fase>('abrindo')
+  const [ligado, setLigado] = useState(true)
   const [mensagem, setMensagem] = useState('')
   const [dados, setDados] = useState<DadosPainel>(vazio)
   const [aba, setAba] = useState<Aba>('imagens')
@@ -119,17 +102,14 @@ export function Painel() {
   }, [])
 
   useEffect(() => {
-    if (!chave) return
-    chamar<{ armazenamento: boolean; dados: DadosPainel }>('abrir', chave)
+    chamar<{ armazenamento: boolean; dados: DadosPainel }>('abrir')
       .then(({ dados: r }) => {
         setDados(r.dados ?? vazio())
-        setFase(r.armazenamento ? 'pronto' : 'sem-armazenamento')
+        setLigado(r.armazenamento)
+        setFase('pronto')
       })
-      .catch((e: Error & { status?: number }) => {
-        setMensagem(e.message)
-        setFase(e.status === 401 ? 'negado' : e.status === 503 ? 'desligado' : 'erro')
-      })
-  }, [chave])
+      .catch((e: Error) => { setMensagem(e.message); setFase('erro') })
+  }, [])
 
   /** Toda gravação passa por uma fila, uma de cada vez, sempre a partir do último estado salvo. */
   const gravar = useCallback((mudar: (d: DadosPainel) => DadosPainel) => {
@@ -137,7 +117,7 @@ export function Painel() {
       setSalvando(true)
       try {
         const novo = mudar(dadosRef.current)
-        const { dados: r } = await chamar<{ dados: DadosPainel }>('salvar', chave, { precos: novo.precos, fotos: novo.fotos })
+        const { dados: r } = await chamar<{ dados: DadosPainel }>('salvar', { precos: novo.precos, fotos: novo.fotos })
         dadosRef.current = r.dados
         setDados(r.dados)
         return true
@@ -145,7 +125,7 @@ export function Painel() {
     })
     fila.current = tarefa.catch(() => undefined)
     return tarefa
-  }, [chave])
+  }, [])
 
   /* ----- fotos ----- */
 
@@ -156,7 +136,7 @@ export function Painel() {
     for (const arquivo of arquivos) {
       try {
         const foto = await prepararFoto(arquivo)
-        const { dados: r } = await chamar<{ url: string }>('foto', chave, { slug: peca.slug, ...foto })
+        const { dados: r } = await chamar<{ url: string }>('foto', { slug: peca.slug, ...foto })
         await gravar((d) => ({ ...d, fotos: { ...d.fotos, [peca.slug]: [...(d.fotos[peca.slug] ?? []), r.url] } }))
         feitas++
       } catch (e) {
@@ -258,6 +238,11 @@ export function Painel() {
     </header>
 
     <main className="pn-corpo">
+      {!ligado && <div className="pn-alerta" role="alert">
+        <CloudOff aria-hidden="true" />
+        <div><b>Falta só ligar o armazenamento das fotos e preços.</b>
+          <span>Na Vercel, no projeto inova-inox: <b>Storage</b> → <b>Create</b> → <b>Blob</b> → acesso <b>Public</b> → <b>Connect</b>. Depois, em Deployments, <b>Redeploy</b> no último deploy.</span></div>
+      </div>}
       <p className="pn-dica">{aba === 'imagens'
         ? <>Toque em <b>Adicionar foto</b> em cada peça. A foto com a estrela é a <b>principal</b> no site. Assim que sobe, já aparece na loja.</>
         : <>Digite o preço de cada medida e toque em <b>Salvar e publicar</b>. Deixe <b>vazio</b> para aparecer “sob consulta”.</>}</p>

@@ -4,7 +4,7 @@ Site e loja da Inova Inox: conexões sanitárias e industriais em inox 304 e 316
 
 Página única: abertura com o logo, faixa, loja (busca, linhas, cards, janela da peça), serviços, dúvidas, catálogo técnico e rodapé. Sacola lateral com frete pelo Melhor Envio e pagamento pelo Mercado Pago.
 
-Painel da loja em `/painel` (link com chave): fotos e preços de cada peça, publicados na hora.
+Painel da loja em `/painel`: fotos e preços de cada peça, publicados na hora.
 
 ## Rodar
 
@@ -18,16 +18,15 @@ As funções em `api/` (frete, pagamento e aviso de pagamento) rodam na Vercel.
 
 ## Painel da loja (fotos e preços)
 
-O painel fica em `https://SEU-SITE/painel?chave=SUA_CHAVE`. Não tem login: quem tem o link entra.
+O painel fica em `https://SEU-SITE/painel`. Não tem login nem aparece em nenhum link do site (e não entra no Google).
 
 - **Imagens:** "Adicionar foto" em cada peça (do celular ou do computador). A foto com a estrela é a principal no site. A foto é reduzida no aparelho antes de subir.
 - **Preços:** preço de cada medida em inox 304 e 316. Vazio = "sob consulta". "Salvar e publicar" grava e o site atualiza em segundos.
 
 Para ligar na Vercel (uma vez só):
 
-1. Projeto → **Storage** → **Create** → **Blob** (acesso **Public**) → conectar ao projeto. A variável `BLOB_READ_WRITE_TOKEN` entra sozinha.
-2. **Settings → Environment Variables** → `PAINEL_CHAVE` com uma chave longa (é a senha que vai no link).
-3. **Deployments → Redeploy**.
+1. Projeto → **Storage** → **Create** → **Blob** (acesso **Public**) → **Connect** ao projeto. A variável `BLOB_READ_WRITE_TOKEN` entra sozinha.
+2. **Deployments → Redeploy** no último deploy.
 
 Os dados ficam em `painel/dados.json` no Blob, com uma cópia de cada versão em `painel/historico/`. O checkout confere os preços do painel no servidor. Se a planilha também estiver ligada, o painel tem a palavra final.
 
@@ -65,7 +64,6 @@ Variáveis de ambiente na Vercel (Settings → Environment Variables):
 | `MELHORENVIO_ORIGEM_CEP` | CEP de onde as peças saem (também pode ir em `FRETE.origemCep`, em `ajustes.js`). |
 | `MELHORENVIO_SANDBOX` | `true` para testar no ambiente de testes do Melhor Envio. |
 | `PLANILHA_URL` | Link da planilha (opcional, se não estiver em `ajustes.js`). |
-| `PAINEL_CHAVE` | Chave do link do painel da loja. |
 | `BLOB_READ_WRITE_TOKEN` | Criada sozinha ao conectar o Blob ao projeto. |
 
 O servidor sempre confere preço e frete direto no painel (ou na planilha) e no Melhor Envio; nada que vem do navegador é usado como valor.
