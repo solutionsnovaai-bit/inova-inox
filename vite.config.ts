@@ -6,6 +6,9 @@ export default defineConfig({
   build: {
     target: 'es2020',
     assetsInlineLimit: 0,
-    rollupOptions: { output: { manualChunks: { react: ['react', 'react-dom'], motion: ['motion/react'] } } },
+    rollupOptions: {
+      input: { site: 'index.html', painel: 'painel.html' },
+      output: { manualChunks: { react: ['react', 'react-dom'], motion: ['motion/react'] } },
+    },
   },
 })

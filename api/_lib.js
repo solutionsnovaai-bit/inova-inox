@@ -1,11 +1,12 @@
 // api/_lib.js
 //
 // Utilitários das funções do servidor (frete, checkout e webhook).
-// Os preços SEMPRE vêm da planilha do Google, lida aqui no servidor:
+// Os preços SEMPRE vêm do painel da loja e/ou da planilha do Google, lidos aqui no servidor:
 // nada que o navegador manda sobre preço é aceito.
 
 import { FRETE, PLANILHA } from '../src/loja/ajustes.js'
 import { chaveMedida, fontesPlanilha, tabelaDePrecos } from '../src/loja/planilha.js'
+import { lerPainel, precosDoPainel } from './_painel.js'
 
 export const MAX_QTD_ITEM = 500
 const MAX_TEXTO = 120
@@ -39,10 +40,7 @@ export class ErroLoja extends Error {
   constructor(status, message) { super(message); this.status = status }
 }
 
-/** Lê a planilha do Google e devolve o mapa "peça|medida" → preços, peso e visibilidade. */
-export async function carregarPrecos() {
-  const link = linkPlanilha()
-  if (!link) throw new ErroLoja(503, 'A loja ainda não está com os preços ligados. Finalize pelo WhatsApp.')
+async function lerPlanilha(link) {
   for (const url of fontesPlanilha(link)) {
     try {
       const r = await fetch(`${url}${url.includes('?') ? '&' : '?'}t=${Date.now()}`, { cache: 'no-store' })
@@ -53,7 +51,25 @@ export async function carregarPrecos() {
       console.error('[planilha] falha ao ler:', e)
     }
   }
-  throw new ErroLoja(502, 'Não foi possível conferir os preços agora. Tente de novo em instantes.')
+  return null
+}
+
+/** Mapa "peça|medida" → preços, peso e visibilidade. O painel manda; a planilha (se ligada) completa. */
+export async function carregarPrecos() {
+  const link = linkPlanilha()
+  const [painel, planilha] = await Promise.all([lerPainel(), link ? lerPlanilha(link) : null])
+  const doPainel = painel ? precosDoPainel(painel) : new Map()
+  if (!planilha && !doPainel.size) {
+    throw link
+      ? new ErroLoja(502, 'Não foi possível conferir os preços agora. Tente de novo em instantes.')
+      : new ErroLoja(503, 'A loja ainda não está com os preços ligados. Finalize pelo WhatsApp.')
+  }
+  const mapa = new Map(planilha ?? [])
+  for (const [chave, linha] of doPainel) {
+    const base = mapa.get(chave)
+    mapa.set(chave, base ? { ...base, p304: linha.p304 ?? base.p304, p316: linha.p316 ?? base.p316, visivel: true } : linha)
+  }
+  return mapa
 }
 
 /**
@@ -65,8 +81,10 @@ export function conferirItens(mapa, brutos, { exigirPreco = true } = {}) {
   const lista = Array.isArray(brutos) ? brutos : []
   if (!lista.length) throw new ErroLoja(400, 'Sacola vazia.')
   return lista.map((b) => {
-    const linha = mapa.get(chaveMedida(b?.nome, b?.medida))
-    if (!linha || !linha.visivel) throw new ErroLoja(400, `Peça indisponível: ${limpar(b?.nome)} ${limpar(b?.medida)}`.trim())
+    let linha = mapa.get(chaveMedida(b?.nome, b?.medida))
+    if (!linha && !exigirPreco) linha = { nome: limpar(b?.nome), medida: limpar(b?.medida), p304: null, p316: null, pesoG: null, visivel: true }
+    if (!linha) throw new ErroLoja(400, `${limpar(b?.nome)} ${limpar(b?.medida)} está sob consulta. Finalize pelo WhatsApp.`.trim())
+    if (!linha.visivel) throw new ErroLoja(400, `Peça indisponível: ${limpar(b?.nome)} ${limpar(b?.medida)}`.trim())
     const aco = b?.aco === '316' ? '316' : b?.aco === '304' ? '304' : null
     const preco = aco === '316' ? linha.p316 : linha.p304
     if (exigirPreco && preco === null) throw new ErroLoja(400, `${linha.nome} ${linha.medida} está sob consulta. Finalize pelo WhatsApp.`)

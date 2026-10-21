@@ -80,7 +80,7 @@ export function Loja({ abrir }: { abrir: (p: Produto) => void }) {
         </button>)}
       </div>
 
-      {status === 'exemplo' && <p className="aviso-exemplo">Preços de exemplo para visualizar a loja. Os valores reais entram pela planilha.</p>}
+      {status === 'exemplo' && <p className="aviso-exemplo">Preços de exemplo para visualizar a loja. Os valores reais entram pelo painel da loja.</p>}
 
       {lista.length === 0
         ? <div className="loja-vazia">

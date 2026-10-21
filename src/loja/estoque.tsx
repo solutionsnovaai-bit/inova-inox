@@ -2,19 +2,21 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import { PLANILHA, PRECO_EXEMPLO } from './ajustes.js'
 import { fontesPlanilha, linksDeFoto, lerPreco, nao, normalizar, sim, tabela } from './planilha.js'
 import { CATEGORIAS, DESTAQUES_BASE, PRODUTOS_BASE } from './produtos'
-import type { Categoria, Produto, ProdutoBase } from './tipos'
+import type { Categoria, DadosPainel, Produto, ProdutoBase } from './tipos'
 import { slugificar } from './util'
 
 /*
-  Estoque da loja: começa com as peças do catálogo técnico e, com a planilha ligada,
-  passa a mostrar o que a planilha diz (preços, fotos, medidas visíveis, destaques, peças novas).
-  A última leitura fica guardada no navegador para quem volta ver os preços na hora.
+  Estoque da loja: começa com as peças do catálogo técnico e aplica, por cima,
+  o que vem do painel da loja (fotos e preços) e da planilha, se estiver ligada.
+  O painel tem a palavra final. A última leitura fica guardada no navegador
+  para quem volta ver os preços na hora.
 */
 
 export const planilhaLink = (PLANILHA || import.meta.env.VITE_PLANILHA_URL || '').trim()
 
 type Status = 'exemplo' | 'carregando' | 'planilha' | 'erro'
 const CACHE = 'inova-planilha-v2'
+const CACHE_PAINEL = 'inova-painel-v1'
 const ESPERA_MS = 9000
 
 const deBase = (b: ProdutoBase, destaque: boolean, preco: number | null): Produto => ({
@@ -100,6 +102,41 @@ function daPlanilha(csv: string): Produto[] | null {
   return produtos.length ? produtos : null
 }
 
+/** Fotos e preços do painel por cima das peças. */
+function aplicarPainel(lista: Produto[], d: DadosPainel | null): Produto[] {
+  if (!d) return lista
+  return lista.map((p) => {
+    const fotos = d.fotos[p.slug] ?? []
+    const precos = d.precos[p.slug]?.medidas
+    if (!fotos.length && !precos) return p
+    return {
+      ...p,
+      fotosLoja: fotos.length ? [...new Set([...fotos, ...p.fotosLoja])] : p.fotosLoja,
+      variantes: precos
+        ? p.variantes.map((v) => {
+          const x = precos[v.medida]
+          return x ? { ...v, preco304: x.p304 ?? v.preco304, preco316: x.p316 ?? v.preco316 } : v
+        })
+        : p.variantes,
+    }
+  })
+}
+const temPrecos = (d: DadosPainel | null) => Boolean(d && Object.values(d.precos).some((x) => Object.keys(x.medidas).length))
+const lerPainelSalvo = (): DadosPainel | null => {
+  try { const t = localStorage.getItem(CACHE_PAINEL); return t ? JSON.parse(t) as DadosPainel : null } catch { return null }
+}
+
+async function baixarPainel(): Promise<DadosPainel | null> {
+  const ctrl = new AbortController()
+  const t = window.setTimeout(() => ctrl.abort(), 5000)
+  try {
+    const r = await fetch('/api/painel', { signal: ctrl.signal })
+    if (!r.ok) return null
+    const d = await r.json() as DadosPainel
+    return d && typeof d.precos === 'object' && typeof d.fotos === 'object' ? d : null
+  } finally { window.clearTimeout(t) }
+}
+
 async function baixar(link: string) {
   let erro: unknown = null
   for (const url of fontesPlanilha(link)) {
@@ -129,6 +166,21 @@ const lerCache = () => { try { return localStorage.getItem(CACHE) ?? '' } catch 
 export function EstoqueProvider({ children }: { children: ReactNode }) {
   const [csv, setCsv] = useState(() => (planilhaLink ? lerCache() : ''))
   const [status, setStatus] = useState<Status>(() => (!planilhaLink ? 'exemplo' : lerCache() ? 'planilha' : 'carregando'))
+  const [painel, setPainel] = useState<DadosPainel | null>(lerPainelSalvo)
+  const [painelLido, setPainelLido] = useState(() => painel !== null)
+
+  useEffect(() => {
+    let vivo = true
+    baixarPainel()
+      .then((d) => {
+        if (!vivo || !d) return
+        setPainel(d)
+        try { localStorage.setItem(CACHE_PAINEL, JSON.stringify(d)) } catch { /* sem armazenamento */ }
+      })
+      .catch(() => { /* sem painel: segue com a planilha ou os preços de exemplo */ })
+      .finally(() => { if (vivo) setPainelLido(true) })
+    return () => { vivo = false }
+  }, [])
 
   useEffect(() => {
     if (!planilhaLink) return
@@ -149,13 +201,16 @@ export function EstoqueProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const valor = useMemo<Estoque>(() => {
-    const produtos = (csv && daPlanilha(csv)) || (planilhaLink ? BASE : EXEMPLO)
+    const daTabela = csv ? daPlanilha(csv) : null
+    const comPainel = temPrecos(painel)
+    const produtos = aplicarPainel(daTabela || (planilhaLink || comPainel ? BASE : EXEMPLO), painel)
+    const situacao: Status = daTabela || comPainel ? 'planilha' : !painelLido ? 'carregando' : planilhaLink ? status : 'exemplo'
     const mapa = new Map(produtos.map((p) => [p.slug, p]))
     const lista: Categoria[] = [...CATEGORIAS]
     if (produtos.some((p) => p.categoria === 'outros')) lista.push({ id: 'outros', nome: 'Outras peças', texto: 'Peças avulsas da loja.' })
     const categorias = lista.map((cat) => ({ ...cat, total: produtos.filter((p) => p.categoria === cat.id).length })).filter((cat) => cat.total > 0)
-    return { produtos, status, categorias, porSlug: (s) => mapa.get(s) }
-  }, [csv, status])
+    return { produtos, status: situacao, categorias, porSlug: (s) => mapa.get(s) }
+  }, [csv, status, painel, painelLido])
 
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>
 }

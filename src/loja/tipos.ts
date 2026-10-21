@@ -49,3 +49,10 @@ export type Produto = {
 }
 
 export type Aco = '304' | '316'
+
+/** O que o painel da loja guarda (vem de /api/painel). */
+export type DadosPainel = {
+  atualizado: string | null
+  precos: Record<string, { nome: string; medidas: Record<string, { p304: number | null; p316: number | null }> }>
+  fotos: Record<string, string[]>
+}
