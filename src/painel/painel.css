@@ -88,11 +88,17 @@ body { background: var(--fundo); }
 .pn-tabela-capa .desenho { width: 100%; }
 .pn-tabela h3 { font-size: .95rem; font-weight: 600; line-height: 1.25; }
 .pn-tabela header p { font-size: .78rem; color: var(--apagado); }
-.pn-linhas-preco { display: grid; gap: 6px; }
-.pn-cabeca, .pn-linha { display: grid; grid-template-columns: 70px 1fr 1fr; gap: 8px; align-items: center; }
-.pn-linhas-preco.is-unico .pn-cabeca, .pn-linhas-preco.is-unico .pn-linha { grid-template-columns: 70px 1fr; }
-.pn-cabeca span { font-size: .66rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--apagado); }
+.pn-precos { display: grid; gap: 6px; }
 .pn-medida { font-size: .9rem; font-weight: 600; }
+.pn-preco { display: grid; grid-template-columns: 64px 1fr 92px; gap: 8px; align-items: center; }
+.pn-316 { font-size: .74rem; color: var(--apagado); text-align: right; white-space: nowrap; }
+.pn-316 b { color: var(--suave); font-weight: 600; }
+.pn-ajuste { display: flex; align-items: center; gap: 14px; margin-top: 12px; padding: 14px 14px 14px 18px; border-radius: 18px; border: 1px solid var(--linha); background: #fff; }
+.pn-ajuste > div { display: grid; gap: 2px; flex: 1; min-width: 0; font-size: .86rem; color: var(--suave); line-height: 1.4; }
+.pn-ajuste b { font-size: .95rem; color: var(--tinta); }
+.pn-campo.is-pct { flex: none; width: 150px; }
+.pn-campo.is-pct input { text-align: right; }
+.pn-campo.is-pct span { white-space: nowrap; }
 .pn-campo { display: flex; align-items: center; gap: 6px; min-width: 0; height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--linha); background: var(--fundo); transition: border-color .2s, background .2s, box-shadow .2s; }
 .pn-campo span { font-size: .78rem; color: var(--apagado); }
 .pn-campo input { width: 100%; min-width: 0; background: transparent; outline: none; font-size: .95rem; font-weight: 600; }
@@ -101,10 +107,8 @@ body { background: var(--fundo); }
 .pn-campo.is-alterado { border-color: var(--azul); background: #eef5ff; }
 .pn-campo.is-erro { border-color: #e5484d; background: #fff1f1; }
 
-/* Barra de salvar e avisos */
-.pn-barra { position: fixed; left: 50%; bottom: max(16px, env(safe-area-inset-bottom)); z-index: 30; translate: -50% 0; display: flex; align-items: center; gap: 8px; width: max-content; max-width: calc(100% - 24px); padding: 8px 8px 8px 20px; border-radius: 999px; background: var(--noite); color: #fff; box-shadow: 0 24px 50px -18px rgb(10 15 23 / .7); animation: subir .35s var(--suave-ease); }
-.pn-barra > span { margin-right: 6px; font-size: .9rem; white-space: nowrap; }
-.pn-aviso { position: fixed; left: 50%; bottom: 92px; z-index: 40; translate: -50% 0; display: flex; align-items: center; gap: 10px; width: max-content; max-width: calc(100% - 24px); padding: 12px 18px; border-radius: 999px; background: #fff; box-shadow: 0 20px 44px -16px rgb(13 20 32 / .35); font-size: .88rem; font-weight: 500; animation: subir .3s var(--suave-ease); }
+/* Avisos */
+.pn-aviso { position: fixed; left: 50%; bottom: max(20px, env(safe-area-inset-bottom)); z-index: 40; translate: -50% 0; display: flex; align-items: center; gap: 10px; width: max-content; max-width: calc(100% - 24px); padding: 12px 18px; border-radius: 999px; background: #fff; box-shadow: 0 20px 44px -16px rgb(13 20 32 / .35); font-size: .88rem; font-weight: 500; animation: subir .3s var(--suave-ease); }
 .pn-aviso svg { flex: none; width: 18px; height: 18px; padding: 2px; border-radius: 50%; color: #fff; background: var(--whats); }
 .pn-aviso.is-erro { background: #fff1f1; color: #b42318; border-radius: 22px; }
 .pn-aviso.is-erro svg { background: #e5484d; }
@@ -119,11 +123,9 @@ body { background: var(--fundo); }
   .pn-grade { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .pn-card { padding: 8px; border-radius: 18px; }
   .pn-minis li { width: 46px; height: 46px; border-radius: 12px; }
-  .pn-cabeca, .pn-linha { grid-template-columns: 52px 1fr 1fr; gap: 6px; }
-  .pn-linhas-preco.is-unico .pn-cabeca, .pn-linhas-preco.is-unico .pn-linha { grid-template-columns: 52px 1fr; }
+  .pn-preco { grid-template-columns: 50px 1fr 82px; gap: 6px; }
+  .pn-ajuste { flex-wrap: wrap; }
+  .pn-campo.is-pct { width: 100%; }
   .pn-campo { padding: 0 10px; gap: 4px; }
   .pn-campo input::placeholder { font-size: .74rem; }
-  .pn-barra { padding-left: 16px; }
-  .pn-barra > span { font-size: .82rem; }
-  .pn-barra .botao-vidro { width: 42px; padding: 0; font-size: 0; gap: 0; }
 }

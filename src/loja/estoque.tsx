@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { PRECO_EXEMPLO } from './ajustes.js'
 import { CACHE_PAINEL } from './cache'
+import { preco316 } from './precos.js'
 import { CATEGORIAS, DESTAQUES_BASE, PRODUTOS_BASE } from './produtos'
 import type { Categoria, DadosPainel, Produto, ProdutoBase } from './tipos'
 
@@ -44,7 +45,7 @@ function aplicarPainel(lista: Produto[], d: DadosPainel | null, comPrecos: boole
       variantes: precos
         ? p.variantes.map((v) => {
           const x = precos[v.medida]
-          return x ? { ...v, preco304: x.p304, preco316: x.p316 } : v
+          return x ? { ...v, preco304: x.p304, preco316: x.p316 ?? preco316(x.p304, d.acrescimo316) } : v
         })
         : p.variantes,
     }

@@ -53,6 +53,8 @@ export type Aco = '304' | '316'
 /** O que o painel da loja guarda (vem de /api/painel). */
 export type DadosPainel = {
   atualizado: string | null
+  /** Quanto o inox 316 custa a mais que o 304, em %. */
+  acrescimo316?: number
   precos: Record<string, { nome: string; medidas: Record<string, { p304: number | null; p316: number | null }> }>
   fotos: Record<string, string[]>
 }

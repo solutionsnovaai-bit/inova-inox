@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
-import { Check, CloudOff, ExternalLink, ImagePlus, Images, Loader2, Search, Star, Tag, Undo2, X } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type KeyboardEvent } from 'react'
+import { Check, CloudOff, ExternalLink, ImagePlus, Images, Loader2, Search, Star, Tag, X } from 'lucide-react'
 import { Desenho } from '../componentes/ui'
 import { logo } from '../lib/midia'
-import { lerPreco, normalizar } from '../loja/precos.js'
+import { ACRESCIMO_316_PADRAO, lerPreco, normalizar, preco316 } from '../loja/precos.js'
 import { CACHE_PAINEL } from '../loja/cache'
 import { CATEGORIAS, PRODUTOS_BASE } from '../loja/produtos'
 import type { DadosPainel, ProdutoBase } from '../loja/tipos'
@@ -18,7 +18,7 @@ type Aba = 'imagens' | 'precos'
 type Fase = 'abrindo' | 'erro' | 'pronto'
 type Aviso = { texto: string; tipo: 'ok' | 'erro' } | null
 
-const vazio = (): DadosPainel => ({ atualizado: null, precos: {}, fotos: {} })
+const vazio = (): DadosPainel => ({ atualizado: null, acrescimo316: ACRESCIMO_316_PADRAO, precos: {}, fotos: {} })
 
 async function chamar<T>(acao: string, corpo?: unknown): Promise<{ status: number; dados: T }> {
   const r = await fetch(`/api/painel?acao=${acao}&t=${Date.now()}`, {
@@ -58,7 +58,8 @@ async function prepararFoto(arquivo: File): Promise<{ tipo: string; base64: stri
 }
 
 const paraTexto = (n: number | null | undefined) => (n == null ? '' : n.toFixed(2).replace('.', ','))
-const chaveCampo = (slug: string, medida: string, aco: '304' | '316') => `${slug}|${medida}|${aco}`
+const chaveCampo = (slug: string, medida: string) => `${slug}|${medida}`
+const lerPct = (t: string) => { const n = Number(t.replace(',', '.').replace(/[^\d.]/g, '')); return t.trim() !== '' && Number.isFinite(n) && n <= 300 ? n : null }
 const nomeLinha = (id: string) => CATEGORIAS.find((c) => c.id === id)?.nome ?? 'Outras peças'
 const hora = (iso: string | null) => (iso ? new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '')
 
@@ -87,6 +88,7 @@ export function Painel() {
   const [busca, setBusca] = useState('')
   const [linha, setLinha] = useState('todas')
   const [edicoes, setEdicoes] = useState<Record<string, string>>({})
+  const [pctTexto, setPctTexto] = useState<string | null>(null)
   const [subindo, setSubindo] = useState<Record<string, number>>({})
   const [emAndamento, setEmAndamento] = useState(0)
   const salvando = emAndamento > 0
@@ -129,7 +131,7 @@ export function Painel() {
     const tarefa = fila.current.then(async () => {
       try {
         const novo = mudar(confirmado.current)
-        const { dados: r } = await chamar<{ dados: DadosPainel }>('salvar', { precos: novo.precos, fotos: novo.fotos })
+        const { dados: r } = await chamar<{ dados: DadosPainel }>('salvar', { precos: novo.precos, fotos: novo.fotos, acrescimo316: novo.acrescimo316 })
         confirmado.current = r.dados
         avisarLoja(r.dados)
         return true
@@ -174,49 +176,48 @@ export function Painel() {
     }).then(() => avisar(texto)).catch((e: Error) => avisar(e.message, 'erro'))
   }
 
-  /* ----- preços ----- */
+  /* ----- preços: um campo por medida (inox 304); o 316 sai do acréscimo em %; salva sozinho ----- */
 
   const salvos = useMemo(() => {
     const m: Record<string, string> = {}
     for (const [slug, peca] of Object.entries(dados.precos)) {
-      for (const [medida, v] of Object.entries(peca.medidas)) {
-        m[chaveCampo(slug, medida, '304')] = paraTexto(v.p304)
-        m[chaveCampo(slug, medida, '316')] = paraTexto(v.p316)
-      }
+      for (const [medida, v] of Object.entries(peca.medidas)) m[chaveCampo(slug, medida)] = paraTexto(v.p304)
     }
     return m
   }, [dados.precos])
+  const pctSalvo = dados.acrescimo316 ?? ACRESCIMO_316_PADRAO
+  const pctAtual = pctTexto !== null && lerPct(pctTexto) !== null ? lerPct(pctTexto)! : pctSalvo
 
   const valor = (k: string) => edicoes[k] ?? salvos[k] ?? ''
-  const alteradas = Object.keys(edicoes).filter((k) => lerPreco(edicoes[k]) !== lerPreco(salvos[k] ?? ''))
-  const invalidas = Object.keys(edicoes).filter((k) => edicoes[k].trim() && lerPreco(edicoes[k]) === null)
+  const mudou = (k: string) => k in edicoes && lerPreco(edicoes[k]) !== lerPreco(salvos[k] ?? '')
+  const errado = (v: string) => v.trim() !== '' && lerPreco(v) === null
+  const prontas = Object.keys(edicoes).filter((k) => mudou(k) && !errado(edicoes[k]))
+  const pctMudou = pctTexto !== null && lerPct(pctTexto) !== null && lerPct(pctTexto) !== pctSalvo
+  const aguardando = prontas.length > 0 || pctMudou
 
   useEffect(() => {
-    if (!alteradas.length) return
+    if (!aguardando) return
     const sair = (e: BeforeUnloadEvent) => { e.preventDefault() }
     addEventListener('beforeunload', sair)
     return () => removeEventListener('beforeunload', sair)
-  }, [alteradas.length])
+  }, [aguardando])
 
   const salvarPrecos = () => {
-    if (invalidas.length) return avisar('Tem preço escrito errado (marcado em vermelho). Use só números, ex.: 38,50', 'erro')
-    const congeladas = { ...edicoes }
+    const congeladas = Object.fromEntries(prontas.map((k) => [k, edicoes[k]]))
+    const pct = pctMudou ? lerPct(pctTexto!) : null
+    const pctEnviado = pctTexto
     gravar((d) => {
       const precos: DadosPainel['precos'] = {}
       for (const peca of PRODUTOS_BASE) {
         const medidas: DadosPainel['precos'][string]['medidas'] = {}
         for (const medida of peca.medidas) {
-          const ler = (aco: '304' | '316') => {
-            const k = chaveCampo(peca.slug, medida, aco)
-            return lerPreco(congeladas[k] ?? paraTexto(d.precos[peca.slug]?.medidas[medida]?.[aco === '304' ? 'p304' : 'p316']))
-          }
-          const p304 = ler('304')
-          const p316 = peca.material ? ler('316') : null
-          if (p304 !== null || p316 !== null) medidas[medida] = { p304, p316 }
+          const k = chaveCampo(peca.slug, medida)
+          const p304 = k in congeladas ? lerPreco(congeladas[k]) : d.precos[peca.slug]?.medidas[medida]?.p304 ?? null
+          if (p304 !== null) medidas[medida] = { p304, p316: null }
         }
         if (Object.keys(medidas).length) precos[peca.slug] = { nome: peca.nome, medidas }
       }
-      return { ...d, precos }
+      return { ...d, precos, acrescimo316: pct ?? d.acrescimo316 ?? ACRESCIMO_316_PADRAO }
     })
       .then(() => {
         setEdicoes((x) => {
@@ -224,9 +225,25 @@ export function Painel() {
           for (const [k, v] of Object.entries(congeladas)) if (resto[k] === v) delete resto[k]
           return resto
         })
-        avisar('Preços publicados no site.')
+        setPctTexto((t) => (t === pctEnviado ? null : t))
       })
       .catch((e: Error) => avisar(e.message, 'erro'))
+  }
+  const salvarRef = useRef(salvarPrecos)
+  salvarRef.current = salvarPrecos
+
+  /* Salva sozinho menos de 1 s depois que a pessoa para de digitar. */
+  useEffect(() => {
+    if (!aguardando) return
+    const t = window.setTimeout(() => salvarRef.current(), 900)
+    return () => window.clearTimeout(t)
+  }, [edicoes, pctTexto, aguardando])
+
+  const proximoCampo = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== 'Enter') return
+    e.preventDefault()
+    const campos = [...document.querySelectorAll<HTMLInputElement>('.pn-preco input')]
+    campos[campos.indexOf(e.currentTarget) + 1]?.focus()
   }
 
   /* ----- filtro ----- */
@@ -248,8 +265,8 @@ export function Painel() {
         <img src={logo.marca} alt="Inova Inox" className="pn-logo" />
         <div className="pn-titulo">
           <b>Painel da loja</b>
-          <small className={salvando || enviando ? 'is-salvando' : ''}>
-            {salvando || enviando ? <><Loader2 className="girando" />Salvando…</> : <><Check />Tudo salvo{dados.atualizado ? ` · ${hora(dados.atualizado)}` : ''}</>}
+          <small className={salvando || enviando || aguardando ? 'is-salvando' : ''}>
+            {salvando || enviando || aguardando ? <><Loader2 className="girando" />Salvando…</> : <><Check />Tudo salvo{dados.atualizado ? ` · ${hora(dados.atualizado)}` : ''}</>}
           </small>
         </div>
         <a href="/" target="_blank" rel="noopener" className="botao botao-vidro botao-p pn-ver">Ver o site <ExternalLink /></a>
@@ -268,7 +285,16 @@ export function Painel() {
       </div>}
       <p className="pn-dica">{aba === 'imagens'
         ? <>Toque em <b>Adicionar foto</b> em cada peça. A foto com a estrela é a <b>principal</b> no site. Assim que sobe, já aparece na loja.</>
-        : <>Digite o preço de cada medida e toque em <b>Salvar e publicar</b>. Deixe <b>vazio</b> para aparecer “sob consulta”.</>}</p>
+        : <>Digite o preço de cada medida em <b>inox 304</b>. <b>Salva sozinho.</b> Deixe <b>vazio</b> para aparecer “sob consulta”.</>}</p>
+
+      {aba === 'precos' && <div className="pn-ajuste">
+        <div><b>Inox 316</b><span>Calculado sozinho: o preço do 304 mais esta porcentagem.</span></div>
+        <label className={`pn-campo is-pct ${pctTexto !== null && lerPct(pctTexto) === null ? 'is-erro' : ''}`}>
+          <input inputMode="decimal" value={pctTexto ?? String(pctSalvo).replace('.', ',')} aria-label="Acréscimo do inox 316 em porcentagem"
+            onChange={(e) => setPctTexto(e.target.value)} />
+          <span>% a mais</span>
+        </label>
+      </div>}
 
       <div className="pn-filtros">
         <label className="pn-busca">
@@ -323,37 +349,28 @@ export function Painel() {
                 <span className="pn-tabela-capa">{capa ? <img src={capa} alt="" loading="lazy" /> : <Desenho desenho={p.desenho} />}</span>
                 <div><h3>{p.nome}</h3><p>{nomeLinha(p.categoria)} · {p.medidas.length} {p.medidas.length === 1 ? 'medida' : 'medidas'}</p></div>
               </header>
-              <div className={`pn-linhas-preco ${p.material ? '' : 'is-unico'}`}>
-                <div className="pn-cabeca"><span>Medida</span>{p.material ? <><span>Inox 304</span><span>Inox 316</span></> : <span>Preço</span>}</div>
-                {p.medidas.map((m) => <div key={m} className="pn-linha">
-                  <span className="pn-medida">{m}</span>
-                  {(p.material ? (['304', '316'] as const) : (['304'] as const)).map((aco) => {
-                    const k = chaveCampo(p.slug, m, aco)
-                    const v = valor(k)
-                    const mudou = alteradas.includes(k)
-                    const errado = v.trim() !== '' && lerPreco(v) === null
-                    return <label key={aco} className={`pn-campo ${mudou ? 'is-alterado' : ''} ${errado ? 'is-erro' : ''}`}>
+              <div className="pn-precos">
+                {p.medidas.map((m) => {
+                  const k = chaveCampo(p.slug, m)
+                  const v = valor(k)
+                  const n = lerPreco(v)
+                  return <label key={m} className="pn-preco">
+                    <span className="pn-medida">{m}</span>
+                    <span className={`pn-campo ${mudou(k) ? 'is-alterado' : ''} ${errado(v) ? 'is-erro' : ''}`}>
                       <span>R$</span>
-                      <input inputMode="decimal" placeholder="sob consulta" value={v}
-                        aria-label={`${p.nome} ${m} ${p.material ? `inox ${aco}` : ''}`}
+                      <input inputMode="decimal" enterKeyHint="next" placeholder="sob consulta" value={v} aria-label={`${p.nome} ${m}`}
                         onChange={(e) => setEdicoes((x) => ({ ...x, [k]: e.target.value }))}
-                        onBlur={() => { const n = lerPreco(v); if (n !== null) setEdicoes((x) => (k in x ? { ...x, [k]: paraTexto(n) } : x)) }} />
-                    </label>
-                  })}
-                </div>)}
+                        onKeyDown={proximoCampo}
+                        onBlur={() => { if (n !== null) setEdicoes((x) => (k in x ? { ...x, [k]: paraTexto(n) } : x)) }} />
+                    </span>
+                    {p.material && <small className="pn-316">{n !== null ? <>316: <b>{paraTexto(preco316(n, pctAtual))}</b></> : '—'}</small>}
+                  </label>
+                })}
               </div>
             </section>
           })}
         </div>}
     </main>
-
-    {aba === 'precos' && alteradas.length > 0 && <div className="pn-barra" role="region" aria-label="Alterações de preço">
-      <span><b>{alteradas.length}</b> {alteradas.length === 1 ? 'preço alterado' : 'preços alterados'}</span>
-      <button type="button" className="botao botao-p botao-vidro" onClick={() => setEdicoes({})}><Undo2 />Desfazer</button>
-      <button type="button" className="botao botao-p botao-azul" onClick={salvarPrecos}>
-        {salvando ? <><Loader2 className="girando" />Publicando…</> : <><Check />Salvar e publicar</>}
-      </button>
-    </div>}
 
     {aviso && <div className={`pn-aviso is-${aviso.tipo}`} role="status">{aviso.tipo === 'ok' ? <Check /> : <X />}{aviso.texto}</div>}
   </div>

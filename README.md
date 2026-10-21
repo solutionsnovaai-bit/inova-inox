@@ -19,7 +19,7 @@ As funções em `api/` (painel, frete, pagamento e aviso de pagamento) rodam na 
 Tudo o que muda na loja é feito em `https://SEU-SITE/painel`. Não tem login, não aparece em nenhum link do site e não entra no Google.
 
 - **Imagens:** "Adicionar foto" em cada peça (do celular ou do computador). A foto com a estrela é a principal no site. A foto é reduzida no aparelho antes de subir.
-- **Preços:** preço de cada medida em inox 304 e 316. Vazio = "sob consulta". "Salvar e publicar" grava.
+- **Preços:** um campo por medida, com o preço do inox 304. O 316 é calculado sozinho (304 + a porcentagem do topo da aba, 30% de partida). Vazio = "sob consulta". Salva sozinho ao parar de digitar.
 
 Cada mudança aparece no painel na hora. A loja aberta no mesmo aparelho se atualiza sozinha; para os outros visitantes, em até alguns segundos.
 

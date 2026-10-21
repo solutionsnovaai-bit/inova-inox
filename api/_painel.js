@@ -8,7 +8,7 @@
 // A variável BLOB_READ_WRITE_TOKEN entra sozinha; não há mais nada para configurar.
 
 import { get, put } from '@vercel/blob'
-import { chaveMedida } from '../src/loja/precos.js'
+import { ACRESCIMO_316_PADRAO, chaveMedida, preco316 } from '../src/loja/precos.js'
 
 const ARQUIVO = 'painel/dados.json'
 const SLUG = /^[a-z0-9-]{1,90}$/
@@ -24,7 +24,7 @@ export function mesmoSite(req) {
   try { return new URL(de).host === host } catch { return false }
 }
 
-export const vazio = () => ({ versao: 1, atualizado: null, precos: {}, fotos: {} })
+export const vazio = () => ({ versao: 1, atualizado: null, acrescimo316: ACRESCIMO_316_PADRAO, precos: {}, fotos: {} })
 
 const preco = (v) => {
   const n = typeof v === 'number' ? v : Number(String(v ?? '').replace(',', '.'))
@@ -36,6 +36,8 @@ const texto = (v, max) => String(v ?? '').trim().slice(0, max)
 export function normalizarDados(bruto) {
   const saida = vazio()
   saida.atualizado = typeof bruto?.atualizado === 'string' ? bruto.atualizado.slice(0, 40) : null
+  const acrescimo = Number(bruto?.acrescimo316)
+  saida.acrescimo316 = Number.isFinite(acrescimo) && acrescimo >= 0 && acrescimo <= 300 ? Math.round(acrescimo * 10) / 10 : ACRESCIMO_316_PADRAO
   const precos = bruto?.precos && typeof bruto.precos === 'object' ? bruto.precos : {}
   for (const [slug, peca] of Object.entries(precos).slice(0, 400)) {
     if (!SLUG.test(slug) || !peca || typeof peca !== 'object') continue
@@ -88,7 +90,8 @@ export function precosDoPainel(dados) {
   const mapa = new Map()
   for (const peca of Object.values(dados?.precos ?? {})) {
     for (const [medida, v] of Object.entries(peca.medidas)) {
-      mapa.set(chaveMedida(peca.nome, medida), { nome: peca.nome, medida, p304: v.p304, p316: v.p316, unidade: 'un', pesoG: null, visivel: true })
+      const p316 = v.p316 ?? preco316(v.p304, dados.acrescimo316)
+      mapa.set(chaveMedida(peca.nome, medida), { nome: peca.nome, medida, p304: v.p304, p316, unidade: 'un', pesoG: null, visivel: true })
     }
   }
   return mapa

@@ -2,7 +2,7 @@
 //
 // GET  /api/painel                 fotos e preços do painel (o site lê daqui)
 // GET  /api/painel?acao=abrir      estado atual sem cache + se o armazenamento está ligado
-// POST /api/painel?acao=salvar     { precos, fotos } → grava uma nova versão
+// POST /api/painel?acao=salvar     { precos, fotos, acrescimo316 } → grava uma nova versão
 // POST /api/painel?acao=foto       { slug, tipo, base64 } → sobe a foto e devolve o link
 
 import { readJsonBody } from './_lib.js'
@@ -34,7 +34,7 @@ export default async function handler(req, res) {
     const corpo = readJsonBody(req)
 
     if (acao === 'salvar') {
-      const dados = normalizarDados({ precos: corpo?.precos, fotos: corpo?.fotos, atualizado: new Date().toISOString() })
+      const dados = normalizarDados({ precos: corpo?.precos, fotos: corpo?.fotos, acrescimo316: corpo?.acrescimo316, atualizado: new Date().toISOString() })
       await salvarPainel(dados)
       return res.status(200).json({ ok: true, dados })
     }

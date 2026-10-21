@@ -28,3 +28,10 @@ export function lerPreco(valor) {
 
 /** Chave de uma medida de uma peça: "nome da peça|medida". */
 export const chaveMedida = (nome, medida) => `${normalizar(nome)}|${String(medida ?? '').trim()}`
+
+/** Acréscimo padrão do inox 316 sobre o 304, em %, até a Inova ajustar no painel. */
+export const ACRESCIMO_316_PADRAO = 30
+
+/** Preço do inox 316 a partir do 304 e do acréscimo em %. */
+export const preco316 = (p304, acrescimo) =>
+  p304 == null ? null : Math.round(p304 * (1 + (Number.isFinite(acrescimo) ? acrescimo : ACRESCIMO_316_PADRAO) / 100) * 100) / 100
